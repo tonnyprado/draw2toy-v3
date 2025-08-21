@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 export default function Content(){
+    const navigate = useNavigate();
     return(
         <div
             className="hero min-h-screen"
@@ -15,7 +18,9 @@ export default function Content(){
                         Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
                         quasi. In deleniti eaque aut repudiandae et a id nisi.
                     </p>
-                    <button className="btn btn-primary">Get Started</button>
+                    <button 
+                    className="btn btn-primary"
+                    onClick={() => navigate("/register")}>Registrese aqui</button>
                 </div>
             </div>
         </div>
