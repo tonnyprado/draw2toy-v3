@@ -1,6 +1,6 @@
 import { auth, db } from "../../firebase"; 
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDoc, updateDoc } from "firebase/firestore";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
 //login con email y pass
@@ -37,4 +37,14 @@ export async function signUpUser(name, email, password) {
   });
 
   return cred.user;
+}
+
+export async function getUserProfile(uid) {
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+// Solo para “ascender” manualmente a un admin (hazlo una vez)
+export async function setUserRole(uid, role) {
+  await updateDoc(doc(db, "users", uid), { role });
 }

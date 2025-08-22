@@ -17,6 +17,9 @@ import PageFade from "./components/PageFade";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./routes/PrivateRoute";
 
+import AdminRoute from "./routes/AdminRoute";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+
 function AnimatedRoutes() {
   const location = useLocation();
   return (
@@ -44,6 +47,9 @@ function AnimatedRoutes() {
           path="/pedido"
           element={<PrivateRoute><PageFade><Pedido /></PageFade></PrivateRoute>}
         />
+
+        {/*SOLO ADMIN USER*/}
+        <Route path="/admin" element={<AdminRoute><PageFade><AdminDashboard/></PageFade></AdminRoute>}/>
       </Routes>
     </AnimatePresence>
   );
@@ -51,7 +57,7 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider> {/* ⬅️ Provee user/loading/logout a toda la app */}
+    <AuthProvider> {/* Provee user/loading/logout a toda la app */}
       <Router>
         <Navbar />
         <AnimatedRoutes />

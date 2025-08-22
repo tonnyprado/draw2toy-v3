@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser, resetPassword } from "../services/authService";
+import { loginUser, resetPassword, getUserProfile } from "../services/authService";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -26,15 +26,21 @@ export default function Login() {
     }
 
     try {
-      setLoading(true);
-      await loginUser(email, pw);
-      navigate("/");
+        setLoading(true);
+        const u = await loginUser(email, pw);
+        const profile = await getUserProfile(u.uid);
+
+        if (profile?.role === "admin") {
+            navigate("/admin");
+        } else {
+            navigate("/");
+        }
     } catch (err) {
-      console.error(err);
-      setError("Credenciales inválidas o error de conexión.");
+        setError("Credenciales inválidas o error de conexión.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
+
   };
 
   const openResetModal = () => {

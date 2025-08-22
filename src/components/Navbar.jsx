@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -58,6 +58,9 @@ export default function Navbar() {
                       <li><Link to="/toyreq1">Ordena tu creación aquí</Link></li>
                       <li><Link to="/pedido">Estado de pedidos</Link></li>
                       <li><Link to="/checkout">Información de pago</Link></li>
+                      {isAdmin && (
+                        <li><Link to="/admin" className="text-accent font-bold">Panel Admin</Link></li>
+                      )}
                       <li><Link to="/about">Acerca de</Link></li>
                       <li><Link to="/contact">Contacto</Link></li>
                     </ul>
