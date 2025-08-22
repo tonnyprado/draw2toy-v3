@@ -19,6 +19,7 @@ import PrivateRoute from "./routes/PrivateRoute";
 
 import AdminRoute from "./routes/AdminRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import PedidosUsuario from "./pages/PedidosUsuario";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -43,10 +44,15 @@ function AnimatedRoutes() {
           path="/checkout"
           element={<PrivateRoute><PageFade><Checkout /></PageFade></PrivateRoute>}
         />
+        <Route 
+        path="/pedido"
+        element={<PrivateRoute><PageFade><PedidosUsuario/></PageFade></PrivateRoute>}
+        />
         <Route
           path="/pedido"
           element={<PrivateRoute><PageFade><Pedido /></PageFade></PrivateRoute>}
         />
+        <Route path="/pedido/:orderId" element={<PrivateRoute><PageFade><Pedido /></PageFade></PrivateRoute>} />
 
         {/*SOLO ADMIN USER*/}
         <Route path="/admin" element={<AdminRoute><PageFade><AdminDashboard/></PageFade></AdminRoute>}/>
