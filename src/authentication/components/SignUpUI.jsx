@@ -1,6 +1,7 @@
 // src/authentication/components/SignUp.jsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { signUpUser } from "../services/authService";
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -8,8 +9,11 @@ export default function SignUp() {
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!name || !email || !pw || !pw2) {
@@ -21,10 +25,16 @@ export default function SignUp() {
       return;
     }
 
-    // Aquí integrarás Firebase Auth (createUserWithEmailAndPassword + updateProfile)
-    // Por ahora, solo demo:
-    console.log("SignUp:", { name, email });
-    alert("Cuenta creada (demo).");
+    try {
+      setLoading(true);
+      await signUpUser(name, email, pw);
+      alert("Cuenta creada exitosamente 🎉");
+      navigate("/"); // redirige a Home o a donde prefieras
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -83,8 +93,8 @@ export default function SignUp() {
                 onChange={(e) => setPw2(e.target.value)}
               />
 
-              <button type="submit" className="btn btn-neutral mt-4">
-                Crear cuenta
+              <button type="submit" className="btn btn-neutral mt-4" disabled={loading}>
+                {loading ? "Creando..." : "Crear cuenta"}
               </button>
 
               <div className="mt-2">

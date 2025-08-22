@@ -1,29 +1,49 @@
-import Login from "./authentication/components/LoginUI";
-import Footer from "./components/Footer";
-import Navbar from "./components/Navbar";
-import Content from "./components/PresentationContent";
+// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import Content from "./components/PresentationContent";
+import Login from "./authentication/components/LoginUI";
+import SignUp from "./authentication/components/SignUpUI";
 import ToyRequest from "./services/ToyRequest";
 import ToyRequest1 from "./services/legacy/ToyRequest-v1";
 import Checkout from "./services/legacy/Checkout-v1";
 import Pedido from "./services/legacy/Pedidos";
-import SignUp from "./authentication/components/SignUpUI";
-
-import { AnimatePresence } from "framer-motion";
 import PageFade from "./components/PageFade";
 
-function AnimatedRoutes(){
+// ⬇️ Importa el provider y la ruta privada
+import { AuthProvider } from "./context/AuthContext";
+import PrivateRoute from "./routes/PrivateRoute";
+
+function AnimatedRoutes() {
   const location = useLocation();
-  return(
+  return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        {/* Públicas */}
         <Route path="/" element={<PageFade><Content /></PageFade>} />
         <Route path="/login" element={<PageFade><Login /></PageFade>} />
-        <Route path="/toyrequest" element={<PageFade><ToyRequest /></PageFade>} />
-        <Route path="/toyreq1" element={<PageFade><ToyRequest1 /></PageFade>} />
-        <Route path="/checkout" element={<PageFade><Checkout /></PageFade>} />
-        <Route path="/pedido" element={<PageFade><Pedido /></PageFade>} />
         <Route path="/register" element={<PageFade><SignUp /></PageFade>} />
+
+        {/* Privadas (requieren sesión) */}
+        <Route
+          path="/toyrequest"
+          element={<PrivateRoute><PageFade><ToyRequest /></PageFade></PrivateRoute>}
+        />
+        <Route
+          path="/toyreq1"
+          element={<PrivateRoute><PageFade><ToyRequest1 /></PageFade></PrivateRoute>}
+        />
+        <Route
+          path="/checkout"
+          element={<PrivateRoute><PageFade><Checkout /></PageFade></PrivateRoute>}
+        />
+        <Route
+          path="/pedido"
+          element={<PrivateRoute><PageFade><Pedido /></PageFade></PrivateRoute>}
+        />
       </Routes>
     </AnimatePresence>
   );
@@ -31,11 +51,12 @@ function AnimatedRoutes(){
 
 export default function App() {
   return (
-    /* NAVBAR */
-    <Router>
-      <Navbar />
-      <AnimatedRoutes />
-      <Footer />
-    </Router>
+    <AuthProvider> {/* ⬅️ Provee user/loading/logout a toda la app */}
+      <Router>
+        <Navbar />
+        <AnimatedRoutes />
+        <Footer />
+      </Router>
+    </AuthProvider>
   );
 }
