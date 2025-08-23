@@ -1,530 +1,456 @@
-import React from "react";
+// src/components/PresentationContent.jsx
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import logoUrl from "../assets/logo-temporal.png";
+import { motion } from "framer-motion";
+import Footer from "./Footer";
 
 /**
- * Home — Collage “Sticker” con PARALLAX (inspirado en TTN, sin fondo arcoíris)
- * - Parallax frontal (6–8 stickers) controlado por el mouse
- * - Fondo claro con speedlines + halftone sutiles (sin conic/rainbow)
- * - Logo + CTA “aquí” → /pedido-rapido
- * - Cinta (marquee) liviana
- * - Galería pop 3D (scroll-in + hover)
- * - Descripción + tarjeta “Empieza en 1 minuto”
- * - CTA final (conservada)
+ * Landing minimal (cupcake + retro)
+ * - Navbar transparente SOLO aquí (via <body class="navbar-transparent">)
+ * - Cielo: estrellas con “twinkle” + pelotas pastel suaves en movimiento
+ * - Hero tipográfico con CTA → /pedido-rapido
+ * - Paneles alternos (full-bleed) con “ken-burns” en la imagen
+ * - Footer full al final
+ * - Scroll-snap y sin barra visible
  */
 
-const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12 } } };
-const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 140, damping: 16 } } };
+const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.10 } } };
+const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 140, damping: 18 } } };
+const itemX = (dir = 1) => ({
+  hidden: { opacity: 0, x: 24 * dir },
+  show: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 140, damping: 18 } },
+});
+
+// Paleta cupcake + retro
+const PALETTE = [
+  "#ef9fbc", // cupcake pink
+  "#a4d8e1", // aqua
+  "#ffd1dc", // blush
+  "#e0d4f7", // lavender
+  "#e4d8b4", // retro cream
+  "#a3c293", // retro mint
+  "#f9e2ae", // warm cream
+  "#cde7d8", // soft mint
+];
 
 export default function PresentationContent() {
-  // Motion values para parallax (normalizados -1..1 aprox)
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  // Suavizado
-  const sx = useSpring(mx, { stiffness: 80, damping: 18, mass: 0.6 });
-  const sy = useSpring(my, { stiffness: 80, damping: 18, mass: 0.6 });
-
-  const onMouseMove = (e) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    const nx = ((e.clientX - r.left) / r.width - 0.5) * 2; // -1..1
-    const ny = ((e.clientY - r.top) / r.height - 0.5) * 2;
-    mx.set(Math.max(-1, Math.min(1, nx)));
-    my.set(Math.max(-1, Math.min(1, ny)));
-  };
+  // Navbar transparente SOLO aquí
+  useEffect(() => {
+    document.body.classList.add("navbar-transparent");
+    return () => document.body.classList.remove("navbar-transparent");
+  }, []);
 
   return (
-    <div className="scroll-smooth">
+    <div className="landing relative h-screen overflow-y-auto snap-y snap-mandatory overscroll-contain bg-base-100 text-base-content">
+      {/* Cielo: estrellas + pelotas */}
+      <BouncySky />
+
       {/* ===== HERO ===== */}
-      <section
-        id="home"
-        className="relative min-h-[100svh] grid place-items-center overflow-hidden"
-        onMouseMove={onMouseMove}
-      >
-        <HeroBackdropPlain />
-        <HeroStickerCloudStatic /> {/* nube estática ligera */}
-        <HeroStickerParallax mx={sx} my={sy} /> {/* capa frontal parallax */}
+      <section className="relative min-h-[100svh] snap-start grid place-items-center overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          {/* degradé translúcido para que se vea el fondo */}
+          <div className="absolute inset-0 bg-gradient-to-b from-base-100/70 via-base-100/40 to-base-200/70" />
+          {/* vignette suave */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/5 to-transparent" />
+        </div>
 
         <motion.div
           variants={container}
           initial="hidden"
           animate="show"
-          className="relative z-30 container mx-auto px-6 text-center"
+          className="relative z-10 container mx-auto px-6 py-16 grid gap-8 lg:grid-cols-12 items-center"
         >
-          <motion.div variants={item} className="inline-block px-4 py-2 rounded-full bg-black/10 backdrop-blur-sm border border-white/25 mb-4">
-            <span className="text-sm font-semibold tracking-wide text-white">Convierte tu dibujo en un plush real 💫</span>
-          </motion.div>
-
-          {/* Logo */}
-          <motion.div variants={item}>
-            <img
-              src={logoUrl}
-              alt="Draw2Toy"
-              width="640"
-              height="240"
-              loading="eager"
-              decoding="async"
-              draggable="false"
-              className="mx-auto w-[min(90vw,640px)] h-auto drop-shadow-[0_20px_44px_rgba(0,0,0,.28)] select-none"
-            />
-            <h1 className="sr-only">Draw2Toy — Convierte tus dibujos en peluches únicos</h1>
-          </motion.div>
-
-          <motion.p variants={item} className="mt-3 text-base md:text-lg text-white/95 max-w-2xl mx-auto">
-            Súper fácil y <b>sin registro obligatorio</b>: sube tu idea y nosotros le damos vida. ✨
-          </motion.p>
-
-          {/* CTA principal */}
-          <motion.div variants={item} className="mt-8 flex flex-col items-center gap-4">
-            <p className="text-lg md:text-xl text-white">
-              Crea tu juguete ya dando click{" "}
+          <motion.div variants={item} className="lg:col-span-7">
+            <h1 className="text-[11vw] sm:text-[9vw] lg:text-[64px] leading-[0.95] font-extrabold tracking-tight">
+              Convierte dibujos en <span className="underline decoration-wavy decoration-accent/60 underline-offset-8">peluches reales</span>
+            </h1>
+            <p className="mt-5 text-base-content/80 text-base md:text-lg max-w-2xl">
+              Hecho para madres y padres: proceso claro y cariñoso. Sube el dibujo de tu peque y nosotros nos encargamos del resto.
+            </p>
+            <div className="mt-7">
               <Link
                 to="/pedido-rapido"
-                className="btn btn-accent btn-lg align-baseline animate-[pressable_2.4s_ease-in-out_infinite]"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-base-content/20 hover:border-base-content/40 text-base-content/90 hover:text-base-content transition"
               >
-                aquí
+                Empezar <span className="underline underline-offset-4 text-accent">aquí</span>
               </Link>
-            </p>
-            <a href="#gallery" className="btn btn-ghost btn-lg text-white">Ver galería</a>
+            </div>
           </motion.div>
 
-          {/* Cinta de energía */}
-          <motion.div variants={item} className="mt-10">
-            <EnergyRibbon />
+          <motion.div variants={item} className="lg:col-span-5 hidden lg:block">
+            <HeroMarkSoft />
           </motion.div>
         </motion.div>
+
+        <ScrollCue />
       </section>
 
-      {/* ===== GALERÍA ===== */}
-      <section id="gallery" className="relative py-16 md:py-20 overflow-hidden">
-        <SectionBackdrop density={10} />
-        <div className="container mx-auto px-6 relative z-10">
+      {/* ===== Showcase de paneles (full-bleed) ===== */}
+      {PANELS.map((p, i) => (
+        <ShowcasePanel key={i} {...p} flip={i % 2 === 1} />
+      ))}
+
+      {/* ===== Pasos minimal ===== */}
+      <section className="relative min-h-[80svh] snap-start overflow-hidden">
+        <div className="container mx-auto px-6 py-16 lg:py-24 relative z-10">
           <motion.div
             variants={container}
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, amount: 0.22 }}
-            className="mb-10 text-center"
+            viewport={{ once: true, amount: 0.3 }}
+            className="max-w-5xl mx-auto text-center"
           >
-            <motion.h2 variants={item} className="text-3xl md:text-4xl font-extrabold">Galería (pronto real) 🎉</motion.h2>
-            <motion.p variants={item} className="opacity-85 max-w-3xl mx-auto">
-              Placeholders con efecto **pop 3D**. Luego reemplázalos con tus fotos de peluches.
+            <motion.h2 variants={item} className="text-4xl font-extrabold">¿Cómo funciona?</motion.h2>
+            <motion.p variants={item} className="mt-3 text-base-content/70">
+              Tres pasos claros. Sin complicaciones.
             </motion.p>
-          </motion.div>
 
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.12 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
-            style={{ perspective: "1000px" }}
-          >
-            {[...Array(9)].map((_, i) => (
-              <GalleryCard key={i} index={i} />
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ===== DESCRIPCIÓN ===== */}
-      <section id="about" className="relative py-16 md:py-20 overflow-hidden">
-        <SectionBackdrop density={8} strong />
-        <div className="container mx-auto px-6 relative z-10">
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.25 }}
-            className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start"
-          >
-            <motion.div variants={item} className="lg:col-span-3">
-              <h3 className="text-3xl md:text-4xl font-extrabold mb-4">Anime vibes, plush real. 🌈</h3>
-              <p className="opacity-90 text-base md:text-lg">
-                Colores intensos, formas <b>explosivas</b> y movimiento <b>suave</b>. Tú pones la idea; nosotros la fabricamos con materiales de calidad.
-              </p>
-              <ul className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
-                  "Varias tallas y combinaciones",
-                  "Proceso guiado con feedback",
-                  "Seguimiento por correo",
-                  "Empaque lindo para regalo",
-                ].map((txt, i) => (
-                  <li key={i} className="rounded-box bg-base-100 border px-4 py-3 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
-                    <span className="inline-block w-3 h-3 rounded-full" style={{ background: pickColor(i) }} />
-                    <span className="font-medium">{txt}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-
-            <motion.div variants={item} className="lg:col-span-2">
-              <div className="card bg-base-100/95 border shadow-xl overflow-hidden group" style={{ perspective: "1000px" }}>
-                <div className="card-body">
-                  <h4 className="card-title">Empieza en 1 minuto</h4>
-                  <p className="opacity-85">
-                    Sube tu dibujo, elige tamaño y listo. Puedes pedir como invitad@ y completar más tarde.
-                  </p>
-                </div>
-                <div className="relative h-56 sm:h-64 bg-base-200/70">
-                  <PopFigure kind={1} />
-                </div>
-                <div className="card-body pt-0">
-                  <Link to="/pedido-rapido" className="btn btn-primary btn-block group-hover:translate-y-[-2px] transition-transform">
-                    Empezar ahora
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ===== CTA FINAL (conservada) ===== */}
-      <section className="relative py-20">
-        <div className="container mx-auto px-6">
-          <div className="card bg-base-200/60 backdrop-blur-sm">
-            <div className="card-body items-center text-center gap-4">
-              <h3 className="card-title text-2xl md:text-3xl">¿List@ para crear tu peluche perfecto?</h3>
-              <p className="opacity-80 max-w-2xl">
-                Podrás pedir sin registrarte forzosamente (muy pronto). Por ahora, crea tu cuenta en un minuto y guarda tus diseños.
-              </p>
-              <div className="card-actions">
-                <Link to="/register" className="btn btn-primary btn-lg">Crear cuenta</Link>
-                <a href="#home" className="btn btn-ghost btn-lg">Volver arriba</a>
-              </div>
+            <div className="mt-10 grid sm:grid-cols-3 gap-6">
+              <Step n="1" title="Sube el dibujo">Una foto del cuaderno o archivo digital, lo que tengas.</Step>
+              <Step n="2" title="Elige tamaño">Pequeño, mediano o grande. Te guiamos en materiales.</Step>
+              <Step n="3" title="Listo para abrazar">Fabricamos y enviamos a tu casa con seguimiento.</Step>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== FOOTER (full-bleed, alto completo) ===== */}
+      <section id="footer" className="relative snap-start min-h-[100svh] overflow-hidden">
+        {/* transición clara antes del footer negro */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-base-100/80 to-base-200/80" />
+        <div className="relative z-10 flex min-h-[100svh] w-full items-center">
+          <div className="w-screen">
+            <Footer full />
           </div>
         </div>
       </section>
 
-      {/* ===== ESTILOS LOCALES (SIN arcoíris) ===== */}
+      {/* Estilos globales locales */}
       <style>{`
-        /* Fondo claro tipo “papel” con speedlines y halftone */
-        .ttn-plain {
-          background: linear-gradient(180deg, #fff7fb 0%, #fef6e4 100%);
-        }
-        .speedlines {
-          background:
-            repeating-linear-gradient(-18deg,
-              rgba(255,255,255,0.18) 0px,
-              rgba(255,255,255,0.18) 12px,
-              rgba(255,255,255,0.0) 12px,
-              rgba(255,255,255,0.0) 30px
-            );
-          animation: speedMove 16s linear infinite;
-          mask-image: radial-gradient(ellipse at center, black 38%, transparent 80%);
-        }
-        @keyframes speedMove { 0% { background-position: 0 0 } 100% { background-position: 480px 0 } }
-        .halftone {
-          background:
-            radial-gradient(circle at 0 0, rgba(255,255,255,.16) 0 2px, transparent 2px) 0 0/14px 14px,
-            radial-gradient(circle at 7px 7px, rgba(255,255,255,.1) 0 2px, transparent 2px) 0 0/14px 14px;
-          mix-blend-mode: overlay;
-          animation: dotPulse 6s ease-in-out infinite;
-        }
-        @keyframes dotPulse { 0%,100% { transform: scale(1); opacity:.9 } 50% { transform: scale(1.02); opacity:1 } }
+        /* Ocultar barra de scroll aquí */
+        .landing { -ms-overflow-style: none; scrollbar-width: none; }
+        .landing::-webkit-scrollbar { width: 0; height: 0; }
 
-        /* Marquee (cinta) */
-        .ribbon {
-          background: linear-gradient(90deg, #111827, #1f2937, #111827);
-          background-size: 200% 100%;
-          animation: ribbonBg 12s linear infinite;
-          border: 2px solid rgba(255,255,255,.7);
-          box-shadow: 0 8px 24px rgba(0,0,0,.15);
+        /* Navbar transparente SOLO cuando el body lleva esta clase */
+        body.navbar-transparent .navbar {
+          background-color: transparent !important;
+          border-bottom: 1px solid rgba(0,0,0,0.06);
+          backdrop-filter: saturate(180%) blur(10px);
         }
-        @keyframes ribbonBg { 0% { background-position: 0% 50% } 100% { background-position: 200% 50% } }
-        .marquee { animation: marquee 22s linear infinite; will-change: transform; color: #fff; }
-        @keyframes marquee { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }
-
-        /* Shimmer para placeholders de galería */
-        .shimmer { position:absolute; inset:0; background-image: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.45), rgba(255,255,255,0)); background-size: 200% 100%; animation: shimmer 2.2s ease-in-out infinite; }
-        @keyframes shimmer { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
+        body.navbar-transparent .navbar :where(a, button, summary, .link, .btn) {
+          color: rgb(17 24 39 / 0.9);
+        }
+        [data-theme="retro"] body.navbar-transparent .navbar :where(a, button, summary, .link, .btn),
+        [data-theme="cupcake"] body.navbar-transparent .navbar :where(a, button, summary, .link, .btn) {
+          color: oklch(25% 0.03 262);
+        }
 
         /* Animaciones suaves */
-        @keyframes floaty { 0% { transform: translateY(0) translateX(0) rotate(0deg) } 50% { transform: translateY(-12px) translateX(8px) rotate(4deg) } 100% { transform: translateY(0) translateX(0) rotate(0deg) } }
-        @keyframes pressable { 0%,100% { transform: translateY(0) scale(1) } 50% { transform: translateY(-2px) scale(1.03) } }
+        @keyframes floaty { 0% { transform: translateY(0) } 50% { transform: translateY(-8px) } 100% { transform: translateY(0) } }
+        .floaty { animation: floaty 10s ease-in-out infinite; }
 
-        /* Accesibilidad */
+        /* Ken-burns para “imagen” placeholder */
+        @keyframes kenburns {
+          0% { transform: scale(1) translate3d(0,0,0); }
+          50% { transform: scale(1.06) translate3d(2%, -1%, 0); }
+          100% { transform: scale(1.12) translate3d(0, 1%, 0); }
+        }
+        .kenburns {
+          will-change: transform;
+          animation: kenburns 18s ease-in-out infinite alternate;
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .speedlines, .halftone, .marquee, .shimmer { animation: none !important; }
+          .floaty, .kenburns { animation: none !important; }
         }
       `}</style>
     </div>
   );
 }
 
-/* =======================
-   HERO BACKDROP (plain)
-   ======================= */
-function HeroBackdropPlain() {
+/* ================= Cielo: Estrellas + Pelotas ================= */
+function BouncySky() {
   return (
-    <div className="absolute inset-0 -z-20">
-      <div className="absolute inset-0 ttn-plain" />
-      <div className="absolute inset-0 speedlines opacity-55" />
-      <div className="absolute inset-0 halftone opacity-85" />
-    </div>
+    <>
+      <TwinkleStars />               {/* capa trasera */}
+      <BouncyBalls zIndexClass="z-[1]" /> {/* pelotas por encima de estrellas */}
+    </>
   );
 }
 
-/* =======================
-   NUBE DE STICKERS (estática, ligera)
-   ======================= */
-const palette = ["#ff3d75","#ffb800","#00d4ff","#b84cff","#24e079","#ff7ae5","#00ffa3","#ff6b6b","#8cff00","#7aa2ff"];
+/* ================= Fondo: Estrellas (twinkle + drift, sin intervalos) ================= */
+function TwinkleStars() {
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(max-width: 640px)").matches;
 
-function HeroStickerCloudStatic() {
-  const specs = [
-    ["star","10%","12%",110,0, 10,14],
-    ["heart","18%","26%",90,5,-8,13],
-    ["bolt","16%","72%",100,1, 16,12],
-    ["bubble","26%","58%",120,2,0,12],
-    ["blob","34%","10%",130,3,-6,13],
-    ["star","40%","84%",110,4, 8,12],
-    ["heart","48%","20%",95,6,-6,14],
-    ["bolt","54%","74%",100,7,12,13],
-    ["bubble","62%","12%",95,8,0,12],
-    ["blob","70%","88%",120,9,-8,13],
-    ["star","78%","34%",110,2,6,12],
-    ["heart","84%","58%",90,0,-10,13],
-  ];
-  return (
-    <div className="absolute inset-0 -z-10 pointer-events-none">
-      {specs.map(([t, top, left, size, ci, rot, dur], i) => (
-        <Sticker key={i} type={t} top={top} left={left} size={size} color={palette[ci%palette.length]} rotate={rot} duration={dur} z={i%2} />
-      ))}
-    </div>
-  );
-}
+  const count = isMobile ? 90 : 160;
+  const STAR_COLORS = ["#FFFFFF", "#FFF7E6", "#F2ECFF", "#EAFBFF", "#F8F4FF"];
 
-/* =======================
-   STICKERS con parallax (frontal)
-   ======================= */
-function HeroStickerParallax({ mx, my }) {
-  // 8 stickers frontales con fuerzas distintas (px)
-  const front = [
-    ["star",  "22%","18%", 120, 0,  8,  28],
-    ["heart", "28%","78%", 110, 5, -8,  24],
-    ["bolt",  "42%","12%", 100, 1, 16,  22],
-    ["bubble","52%","50%", 130, 2,  0,  20],
-    ["blob",  "62%","82%", 130, 3, -6,  26],
-    ["star",  "74%","26%", 118, 4, 10,  18],
-    ["heart", "82%","64%", 100, 6, -8,  22],
-    ["bolt",  "14%","50%",  96, 7, 14,  24],
-  ];
+  // Genera las estrellas una sola vez (no re-render cíclico)
+  const stars = React.useMemo(() => {
+    const r = (min, max) => Math.random() * (max - min) + min;
+    return Array.from({ length: count }).map((_, i) => {
+      const size = r(1.6, 3.2);             // un poco más grandes para verse sobre fondos claros
+      const top = r(-5, 100);
+      const left = r(-3, 100);
+      const dur = r(4.2, 8.8);
+      const delay = r(0, 6);
+      const dx = r(-10, 10);                // drift suave
+      const dy = r(-8, 8);
+      const color = STAR_COLORS[i % STAR_COLORS.length];
+      const alpha = r(0.55, 0.95);
+      const glow = Math.round(r(3, 8));
+      return { key: `s-${i}-${Math.random().toString(36).slice(2)}`, size, top, left, dur, delay, dx, dy, color, alpha, glow };
+    });
+  }, [count]);
+
   return (
-    <div className="absolute inset-0 z-20 pointer-events-none">
-      {front.map(([t, top, left, size, ci, rot, force], i) => (
-        <ParallaxSticker
-          key={i}
-          type={t}
-          top={top}
-          left={left}
-          size={size}
-          color={palette[ci%palette.length]}
-          rotate={rot}
-          force={force}
-          mx={mx}
-          my={my}
+    <div className="pointer-events-none fixed inset-0 z-0">
+      {stars.map((s) => (
+        <span
+          key={s.key}
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            borderRadius: 9999,
+            backgroundColor: s.color,
+            opacity: s.alpha,
+            // glow visible en fondos claros
+            boxShadow: `0 0 ${s.glow}px ${s.color}`,
+            // variables por estrella
+            ["--dx"]: `${s.dx}px`,
+            ["--dy"]: `${s.dy}px`,
+            ["--twDur"]: `${s.dur}s`,
+            ["--twDelay"]: `${s.delay}s`,
+            animation: `star-twinkle var(--twDur) ease-in-out var(--twDelay) infinite alternate,
+                        star-drift calc(var(--twDur) * 4) ease-in-out var(--twDelay) infinite`,
+            willChange: "transform, opacity",
+            transform: "translateZ(0)",
+          }}
         />
       ))}
+
+      <style>{`
+        @keyframes star-twinkle {
+          0%   { opacity: .25; transform: scale(0.9); }
+          50%  { opacity: 1;    transform: scale(1); }
+          100% { opacity: .25; transform: scale(0.92); }
+        }
+        @keyframes star-drift {
+          0%   { transform: translate3d(0,0,0); }
+          100% { transform: translate3d(var(--dx, 0), var(--dy, 0), 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          span[style*="star-twinkle"] { animation: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
 
-function ParallaxSticker({ type="star", top, left, size=120, color="#ff3d75", rotate=0, force=24, mx, my }) {
-  const x = useTransform(mx, v => v * force);
-  const y = useTransform(my, v => v * force);
+/* ================= Fondo: Pelotas pastel (sin intervalos) ================= */
+function BouncyBalls({ zIndexClass = "z-[1]" }) {
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(max-width: 640px)").matches;
+
+  const count = isMobile ? 16 : 26;
+  const PALETTE = ["#ef9fbc","#a4d8e1","#ffd1dc","#e0d4f7","#e4d8b4","#a3c293","#f9e2ae","#cde7d8"];
+
+  // Genera las bolas una sola vez; solo CSS anima
+  const balls = React.useMemo(() => {
+    const r = (min, max) => Math.random() * (max - min) + min;
+    return Array.from({ length: count }).map((_, i) => {
+      const size = Math.floor(r(40, 160));
+      const top = r(-10, 95);
+      const left = r(-8, 95);
+      const dur = r(10, 20);
+      const delay = r(0, 6);
+      const color = PALETTE[i % PALETTE.length];
+      const blur = Math.random() < 0.3 ? 8 : 2;
+      const alpha = Math.random() < 0.5 ? 0.18 : 0.28;
+      const dir = Math.random() < 0.5 ? "normal" : "reverse";  // variación de dirección
+      return { key: `b-${i}-${Math.random().toString(36).slice(2)}`, size, top, left, dur, delay, color, blur, alpha, dir };
+    });
+  }, [count]);
+
   return (
-    <motion.div
-      style={{ x, y }}
-      className="absolute"
-    >
-      <Sticker type={type} top={top} left={left} size={size} color={color} rotate={rotate} duration={12} z={3} />
-    </motion.div>
+    <div className={`pointer-events-none fixed inset-0 ${zIndexClass}`}>
+      {balls.map((b) => (
+        <span
+          key={b.key}
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: `${b.top}%`,
+            left: `${b.left}%`,
+            width: `${b.size}px`,
+            height: `${b.size}px`,
+            borderRadius: 9999,
+            background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), rgba(255,255,255,0) 50%), ${b.color}`,
+            filter: `blur(${b.blur}px) drop-shadow(0 10px 18px rgba(0,0,0,.08))`,
+            ["--ball-alpha"]: b.alpha,
+            ["--ballDur"]: `${b.dur}s`,
+            ["--ballDelay"]: `${b.delay}s`,
+            animation: `ball-move var(--ballDur) ease-in-out var(--ballDelay) infinite ${b.dir},
+                        ball-fade calc(var(--ballDur) * 1.2) ease-in-out var(--ballDelay) infinite`,
+            willChange: "transform, opacity",
+            transform: "translateZ(0)",
+            mixBlendMode: "multiply",
+          }}
+        />
+      ))}
+
+      <style>{`
+        @keyframes ball-move {
+          0%   { transform: translate3d(0,0,0) scale(1); }
+          40%  { transform: translate3d(12px, -10px, 0) scale(1.04); }
+          60%  { transform: translate3d(-8px, 6px, 0) scale(1.02); }
+          100% { transform: translate3d(0,0,0) scale(1); }
+        }
+        @keyframes ball-fade {
+          0%   { opacity: 0; }
+          12%  { opacity: var(--ball-alpha, .28); }
+          85%  { opacity: var(--ball-alpha, .28); }
+          100% { opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          span[style*="ball-move"] { animation: none !important; }
+        }
+      `}</style>
+    </div>
   );
 }
 
-/* =======================
-   STICKER base (SVG con borde blanco)
-   ======================= */
-function Sticker({ type="star", top, left, size=120, color="#ff3d75", rotate=0, duration=12, z=1 }) {
-  const baseStyle = {
-    position: "absolute",
-    top, left,
-    width: size, height: size,
-    transform: `rotate(${rotate}deg)`,
-    zIndex: z,
-    filter: "drop-shadow(0 18px 30px rgba(0,0,0,.24))",
-    animation: `floaty ${duration}s ease-in-out ${z*0.4}s infinite`,
-    willChange: "transform, opacity",
-    contain: "layout paint",
-    pointerEvents: "none",
-  };
-  if (type === "heart") {
-    return (
-      <svg aria-hidden viewBox="0 0 100 100" style={baseStyle}>
-        <path d="M50 88 C20 64 8 50 8 34 C8 22 18 12 30 12 C38 12 44 16 50 22 C56 16 62 12 70 12 C82 12 92 22 92 34 C92 50 80 64 50 88 Z"
-              fill={color} stroke="white" strokeWidth="8" strokeLinejoin="round"/>
-      </svg>
-    );
-  }
-  if (type === "bolt") {
-    return (
-      <svg aria-hidden viewBox="0 0 100 100" style={baseStyle}>
-        <path d="M56 6 L12 62 H44 L36 94 L88 34 H56 Z"
-              fill={color} stroke="white" strokeWidth="8" strokeLinejoin="round"/>
-      </svg>
-    );
-  }
-  if (type === "bubble") {
-    return (
-      <svg aria-hidden viewBox="0 0 100 100" style={baseStyle}>
-        <circle cx="50" cy="50" r="42" fill={color} stroke="white" strokeWidth="8"/>
-        <circle cx="34" cy="34" r="10" fill="white" opacity=".65"/>
-        <circle cx="42" cy="26" r="6" fill="white" opacity=".35"/>
-      </svg>
-    );
-  }
-  if (type === "blob") {
-    return (
-      <svg aria-hidden viewBox="0 0 100 100" style={baseStyle}>
-        <path d="M20 44 C20 24 36 12 54 16 C70 20 84 32 84 50 C84 68 66 86 48 84 C30 82 20 64 20 44 Z"
-              fill={color} stroke="white" strokeWidth="8" strokeLinejoin="round"/>
-      </svg>
-    );
-  }
-  // star
+/* ================= HERO decor ================= */
+function HeroMarkSoft() {
   return (
-    <svg aria-hidden viewBox="0 0 100 100" style={baseStyle}>
-      <path d="M50 6 L62 36 L94 40 L70 60 L78 92 L50 74 L22 92 L30 60 L6 40 L38 36 Z"
-            fill={color} stroke="white" strokeWidth="8" strokeLinejoin="round"/>
+    <svg viewBox="0 0 300 240" className="w-full h-auto floaty opacity-90">
+      <rect x="20" y="40" width="120" height="80" rx="18" fill="rgba(0,0,0,0.04)" />
+      <circle cx="210" cy="90" r="44" fill="rgba(0,0,0,0.055)" />
+      <rect x="60" y="140" width="200" height="60" rx="20" fill="rgba(0,0,0,0.035)" />
+      <path d="M90 170 L120 190 L170 150" stroke="rgba(0,0,0,0.25)" strokeWidth="10" strokeLinecap="round" fill="none" />
     </svg>
   );
 }
-
-/* =======================
-   ENERGY RIBBON (marquee)
-   ======================= */
-function EnergyRibbon() {
-  const chips = ["Colores vibrantes","Anime vibes","Hecho con amor","Sin registro","Pop 3D","Personalización total","¡Magia plush!"];
-  const track = [...chips, ...chips]; // loop
+function ScrollCue() {
   return (
-    <div className="ribbon rounded-box overflow-hidden">
-      <div className="marquee flex gap-6 py-3 px-6 font-bold whitespace-nowrap">
-        {track.map((txt, i) => (
-          <span key={i} className="inline-flex items-center gap-2 text-white">
-            <span>★</span>{txt}
-          </span>
-        ))}
-      </div>
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-base-content/60">
+      <svg width="28" height="28" viewBox="0 0 24 24" className="animate-bounce">
+        <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </svg>
     </div>
   );
 }
 
-/* =======================
-   GALERÍA
-   ======================= */
-function GalleryCard({ index }) {
-  const tone = palette[index % palette.length];
+/* ================= Showcase Panels ================= */
+const PANELS = [
+  {
+    title: "Del papel al plush",
+    text: "Respetamos los trazos y colores tal como son, para que el peluche conserve la esencia del dibujo.",
+    tone: "rgba(0,0,0,0.04)",
+  },
+  {
+    title: "Seguro y duradero",
+    text: "Materiales suaves y resistentes. Cada pieza es revisada con cariño antes de enviarse.",
+    tone: "rgba(0,0,0,0.04)",
+  },
+  {
+    title: "Acompañamiento real",
+    text: "Confirmamos tamaño, tonos y acabados contigo. Comunicación clara por correo en cada paso.",
+    tone: "rgba(0,0,0,0.04)",
+  },
+];
 
+function ShowcasePanel({ title, text, tone, flip = false }) {
   return (
-    <motion.article
-      variants={item}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.2 }}
-      className="group card bg-base-100/95 border shadow-xl hover:shadow-2xl transition-shadow will-change-transform"
-      style={{ transformStyle: "preserve-3d" }}
-      whileHover={{ y: -8, rotateZ: -0.6, transition: { type: "spring", stiffness: 240, damping: 18 } }}
-    >
-      <figure className="relative aspect-[4/3] overflow-visible">
-        <div className="absolute inset-0 bg-base-200/70"><div className="shimmer" /></div>
-        {/* POP 3D */}
-        <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          style={{ width: 190, height: 190, transform: "translateZ(54px)", filter: "drop-shadow(0 24px 40px rgba(0,0,0,.22))", color: tone }}
+    <section className="relative min-h-[100svh] snap-start overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        {/* Fondo translúcido para dejar ver el cielo */}
+        <div className="absolute inset-0 bg-gradient-to-b from-base-100/70 to-base-200/70" />
+        <div className="absolute inset-0" style={{ background: tone }} />
+      </div>
+
+      <div className="container mx-auto px-6 py-16 lg:py-24 grid items-center gap-10 lg:gap-12 lg:grid-cols-12">
+        {/* “Imagen” con ken-burns */}
+        <motion.div
+          variants={itemX(flip ? 1 : -1)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.35 }}
+          className={`${flip ? "lg:order-2 lg:col-span-7" : "lg:order-1 lg:col-span-7"}`}
         >
-          <PopFigure kind={index % 3} />
-        </div>
-      </figure>
+          <PanelArt flip={flip} />
+        </motion.div>
 
-      <div className="card-body">
-        <h3 className="card-title text-base md:text-lg">Peluche #{index + 1}</h3>
-        <p className="opacity-80 text-sm">Reemplaza esta figura por tu foto. Mantén el efecto pop 3D para que “salte”.</p>
-        <div className="card-actions justify-end">
-          <button className="btn btn-accent btn-sm">Ver detalle</button>
-        </div>
+        {/* Texto */}
+        <motion.div
+          variants={itemX(flip ? -1 : 1)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.35 }}
+          className={`${flip ? "lg:order-1 lg:col-span-5" : "lg:order-2 lg:col-span-5"}`}
+        >
+          <h3 className="text-4xl font-extrabold leading-tight">{title}</h3>
+          <p className="mt-4 text-base-content/70 text-lg">{text}</p>
+        </motion.div>
       </div>
-    </motion.article>
+    </section>
   );
 }
 
-function PopFigure({ kind = 0 }) {
-  if (kind === 1) {
-    return (
-      <svg viewBox="0 0 200 200" className="w-full h-full">
-        <defs><radialGradient id="g1" cx="50%" cy="35%" r="70%"><stop offset="0%" stopColor="#fff" stopOpacity=".9" /><stop offset="60%" stopColor="#fff" stopOpacity=".25" /><stop offset="100%" stopColor="#fff" stopOpacity="0" /></radialGradient></defs>
-        <circle cx="100" cy="100" r="80" fill="currentColor" opacity=".95" />
-        <circle cx="100" cy="100" r="116" fill="none" stroke="currentColor" strokeWidth="16" opacity=".45" />
-        <ellipse cx="82" cy="70" rx="50" ry="32" fill="url(#g1)" style={{ mixBlendMode: "soft-light" }} />
-      </svg>
-    );
-  }
-  if (kind === 2) {
-    return (
-      <svg viewBox="0 0 200 200" className="w-full h-full">
-        <rect x="28" y="28" width="144" height="144" transform="rotate(45 100 100)" fill="currentColor" opacity=".95" rx="18" />
-        <rect x="50" y="50" width="100" height="100" transform="rotate(45 100 100)" fill="#fff" opacity=".20" rx="14" />
-        <rect x="68" y="68" width="64" height="64" transform="rotate(45 100 100)" fill="#fff" opacity=".12" rx="12" />
-      </svg>
-    );
-  }
+/* Arte plano minimal que simula “foto” a reemplazar luego */
+function PanelArt({ flip }) {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full">
-      <path d="M100 10 L126 70 L192 78 L144 121 L158 188 L100 154 L42 188 L56 121 L8 78 L74 70 Z" fill="currentColor" opacity=".98" />
-      <path d="M100 34 L118 73 L162 78 L128 109 L137 152 L100 130 L63 152 L72 109 L38 78 L82 73 Z" fill="#fff" opacity=".20" />
-    </svg>
-  );
-}
-
-/* =======================
-   SECTION BACKDROPS
-   ======================= */
-function SectionBackdrop({ density = 12, strong = false }) {
-  const arr = Array.from({ length: density }).map((_, i) => {
-    const t = ["star", "circle", "square"][i % 3];
-    const size = 90 + (i % 5) * 26;
-    const top = `${(i * 29) % 100}%`;
-    const left = `${(i * 53) % 100}%`;
-    const color = palette[(i * 3) % palette.length] + (strong ? "" : "CC");
-    const dur = 14 + (i % 6);
-    return { t, size, top, left, color, dur };
-  });
-  return (
-    <div className="absolute inset-0 -z-10 pointer-events-none">
-      {arr.map((s, i) => (<BackdropShape key={i} {...s} />))}
+    <div className="relative rounded-2xl overflow-hidden border border-base-content/10 shadow-[0_10px_40px_rgba(0,0,0,.12)]">
+      <div className="aspect-[16/10] bg-base-200/60 kenburns">
+        <svg viewBox="0 0 800 500" className="w-full h-full">
+          <rect x="0" y="0" width="800" height="500" fill="rgba(0,0,0,0.02)" />
+          {/* banda diagonal */}
+          <rect
+            x={flip ? 260 : -60}
+            y="-60"
+            width="400"
+            height="620"
+            transform={`rotate(${flip ? -18 : 18} 200 200)`}
+            fill="rgba(0,0,0,0.05)"
+          />
+          {/* silueta “plush” */}
+          <g opacity="0.35">
+            <circle cx="420" cy="200" r="54" fill="rgba(0,0,0,0.10)" />
+            <ellipse cx="420" cy="340" rx="90" ry="110" fill="rgba(0,0,0,0.10)" />
+            <circle cx="380" cy="160" r="16" fill="rgba(0,0,0,0.10)" />
+            <circle cx="460" cy="160" r="16" fill="rgba(0,0,0,0.10)" />
+            <ellipse cx="340" cy="340" rx="26" ry="48" fill="rgba(0,0,0,0.10)" />
+            <ellipse cx="500" cy="340" rx="26" ry="48" fill="rgba(0,0,0,0.10)" />
+          </g>
+          {/* luz suave */}
+          <circle cx="200" cy="120" r="80" fill="rgba(255,255,255,0.25)" />
+        </svg>
+      </div>
+      <div className="absolute inset-0 pointer-events-none ring-1 ring-base-content/10 rounded-2xl" />
+      <div className="absolute bottom-3 left-3 text-xs uppercase tracking-wider text-base-content/60 bg-base-100/70 px-2 py-1 rounded">
+        muestra
+      </div>
     </div>
   );
 }
-function BackdropShape({ t, size, top, left, color, dur }) {
-  const style = {
-    position: "absolute",
-    top, left, width: size, height: size,
-    filter: "drop-shadow(0 16px 28px rgba(0,0,0,.18))",
-    animation: `floaty ${dur}s ease-in-out ${dur/10}s infinite`,
-    opacity: .95,
-    pointerEvents: "none",
-  };
-  if (t === "circle") return <div aria-hidden style={{ ...style, borderRadius: 9999, background: color }} />;
-  if (t === "square") return <div aria-hidden style={{ ...style, borderRadius: 18, background: color, transform: "rotate(10deg)" }} />;
+
+/* Pasos */
+function Step({ n, title, children }) {
   return (
-    <svg aria-hidden viewBox="0 0 100 100" style={style}>
-      <path d="M50 6 L62 36 L94 40 L70 60 L78 92 L50 74 L22 92 L30 60 L6 40 L38 36 Z" fill={color} />
-    </svg>
+    <div className="rounded-xl border border-base-content/10 bg-base-200/50 p-5 text-left">
+      <div className="text-sm text-base-content/60">Paso {n}</div>
+      <div className="text-xl font-bold">{title}</div>
+      <p className="mt-2 text-base-content/80">{children}</p>
+    </div>
   );
 }
-
-/* =======================
-   HELPERS
-   ======================= */
-function pickColor(i = 0) { return palette[i % palette.length]; }
