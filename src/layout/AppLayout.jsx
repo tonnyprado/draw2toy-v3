@@ -30,7 +30,7 @@ export default function AppLayout() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFF7EC] text-[#1B1A1F]">
+    <div className="comic-theme min-h-screen flex flex-col bg-[#FFF7EC] text-[#1B1A1F]">
       <HashScroller />
       <Navbar />
       <main className="flex-1">

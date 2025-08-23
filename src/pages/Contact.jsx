@@ -1,9 +1,19 @@
+// src/pages/Contact.jsx
 import { useState } from "react";
+import ComicPage from "../design/comic/layouts/ComicPage";
+import { Panel, ComicButton } from "../design/comic/system";
 
-const FN_URL = "https://us-central1-<TU_PROJECT_ID>.cloudfunctions.net/contactEmail"; // ← reemplaza
+const FN_URL =
+  "https://us-central1-<TU_PROJECT_ID>.cloudfunctions.net/contactEmail"; // ← reemplaza
 
 export default function Contact() {
-  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "", hp: "" }); // hp = honeypot
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+    hp: "", // honeypot
+  });
   const [sending, setSending] = useState(false);
   const [ok, setOk] = useState(null);
   const [err, setErr] = useState("");
@@ -15,6 +25,7 @@ export default function Contact() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    if (form.hp) return; // bot atrapado
     setSending(true);
     setOk(null);
     setErr("");
@@ -43,105 +54,163 @@ export default function Contact() {
   };
 
   return (
-    <div className="container mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Formulario */}
-      <form className="card bg-base-100 border lg:col-span-2" onSubmit={onSubmit}>
-        <div className="card-body space-y-3">
-          <h1 className="text-3xl font-bold">Contacto</h1>
-          <p className="opacity-70">¿Tienes dudas? Escríbenos y te respondemos.</p>
+    <ComicPage
+      title="Contacto"
+      subtitle="¿Tienes dudas? Escríbenos y te respondemos."
+      halftone
+      actions={
+        <ComicButton as="a" href="/faq" className="text-sm">
+          Ver FAQ
+        </ComicButton>
+      }
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ===== Formulario ===== */}
+        <Panel className="lg:col-span-2 p-0 overflow-hidden">
+          <form onSubmit={onSubmit} noValidate>
+            <fieldset disabled={sending} aria-busy={sending}>
+              <div className="p-5 sm:p-6 space-y-4">
+                <header className="flex items-center justify-between">
+                  <h1 className="text-2xl sm:text-3xl font-black uppercase leading-tight">
+                    Envíanos un mensaje
+                  </h1>
+                  {sending ? (
+                    <span className="text-xs font-bold opacity-70">Enviando…</span>
+                  ) : null}
+                </header>
 
-          {ok === true && (
-            <div className="alert alert-success">¡Gracias! Tu mensaje fue enviado.</div>
-          )}
-          {ok === false && (
-            <div className="alert alert-error">{err}</div>
-          )}
+                {/* Estado (éxito / error) */}
+                <div aria-live="polite" className="space-y-3">
+                  {ok === true && (
+                    <div className="panel p-3 bg-[#D1FADF] border-[#1B1A1F]">
+                      <div className="font-bold">¡Gracias! Tu mensaje fue enviado.</div>
+                    </div>
+                  )}
+                  {ok === false && (
+                    <div className="panel p-3 bg-[#FDE2E4] border-[#1B1A1F]">
+                      <div className="font-bold">Ups, algo salió mal</div>
+                      <div className="text-sm opacity-80">{err}</div>
+                    </div>
+                  )}
+                </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Nombre</span></label>
-              <input
-                name="name"
-                className="input input-bordered"
-                value={form.name}
-                onChange={onChange}
-                required
-              />
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Email</span></label>
-              <input
-                type="email"
-                name="email"
-                className="input input-bordered"
-                value={form.email}
-                onChange={onChange}
-                required
-              />
-            </div>
-          </div>
+                {/* Campos */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold">Nombre</span>
+                    </label>
+                    <input
+                      name="name"
+                      className="input input-bordered"
+                      value={form.name}
+                      onChange={onChange}
+                      required
+                      autoComplete="name"
+                    />
+                  </div>
 
-          <div className="form-control">
-            <label className="label"><span className="label-text">Asunto</span></label>
-            <input
-              name="subject"
-              className="input input-bordered"
-              value={form.subject}
-              onChange={onChange}
-              placeholder="Quiero un peluche personalizado…"
-            />
-          </div>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold">Email</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      className="input input-bordered"
+                      value={form.email}
+                      onChange={onChange}
+                      required
+                      autoComplete="email"
+                      inputMode="email"
+                    />
+                  </div>
+                </div>
 
-          <div className="form-control">
-            <label className="label"><span className="label-text">Mensaje</span></label>
-            <textarea
-              name="message"
-              className="textarea textarea-bordered min-h-[140px]"
-              value={form.message}
-              onChange={onChange}
-              required
-            />
-          </div>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold">Asunto</span>
+                  </label>
+                  <input
+                    name="subject"
+                    className="input input-bordered"
+                    value={form.subject}
+                    onChange={onChange}
+                    placeholder="Quiero un peluche personalizado…"
+                  />
+                </div>
 
-          {/* Honeypot (oculto para humanos) */}
-          <input
-            type="text"
-            name="hp"
-            value={form.hp}
-            onChange={onChange}
-            className="hidden"
-            tabIndex={-1}
-            autoComplete="off"
-          />
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold">Mensaje</span>
+                  </label>
+                  <textarea
+                    name="message"
+                    className="textarea textarea-bordered min-h-[140px]"
+                    value={form.message}
+                    onChange={onChange}
+                    required
+                  />
+                </div>
 
-          <div className="card-actions justify-end">
-            <button className="btn btn-primary" disabled={sending}>
-              {sending ? "Enviando…" : "Enviar"}
-            </button>
-          </div>
-        </div>
-      </form>
+                {/* Honeypot (oculto para humanos) */}
+                <input
+                  type="text"
+                  name="hp"
+                  value={form.hp}
+                  onChange={onChange}
+                  className="hidden"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
 
-      {/* Lateral: datos y redes (placeholders) */}
-      <aside className="space-y-4">
-        <div className="card bg-base-100 border">
-          <div className="card-body">
-            <h2 className="card-title">También puedes contactarnos</h2>
-            <ul className="space-y-2">
-              <li><a className="link" href="mailto:kath@tudominio.com">kath@tudominio.com</a></li>
-              <li><a className="link" href="#" target="_blank" rel="noreferrer">Instagram</a></li>
-              <li><a className="link" href="#" target="_blank" rel="noreferrer">Facebook</a></li>
-              <li><a className="link" href="#" target="_blank" rel="noreferrer">WhatsApp</a></li>
+                <div className="pt-2 flex items-center justify-end">
+                  <ComicButton className="px-6 py-3">
+                    {sending ? "Enviando…" : "Enviar"}
+                  </ComicButton>
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        </Panel>
+
+        {/* ===== Lateral ===== */}
+        <div className="space-y-6">
+          <Panel className="p-5">
+            <h2 className="text-xl font-black uppercase">También puedes contactarnos</h2>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li>
+                <a className="link" href="mailto:kath@tudominio.com">
+                  kath@tudominio.com
+                </a>
+              </li>
+              <li>
+                <a className="link" href="#" target="_blank" rel="noreferrer noopener">
+                  Instagram
+                </a>
+              </li>
+              <li>
+                <a className="link" href="#" target="_blank" rel="noreferrer noopener">
+                  Facebook
+                </a>
+              </li>
+              <li>
+                <a className="link" href="#" target="_blank" rel="noreferrer noopener">
+                  WhatsApp
+                </a>
+              </li>
             </ul>
-          </div>
+          </Panel>
+
+          <Panel className="p-5">
+            <h2 className="text-xl font-black uppercase">Horario</h2>
+            <p className="opacity-70 text-sm">Lunes a Viernes, 9:00–18:00 (CDMX)</p>
+            <div className="mt-3 text-xs text-[#1B1A1F]/70">
+              Tiempo de respuesta habitual: 24–48h hábiles.
+            </div>
+          </Panel>
         </div>
-        <div className="card bg-base-100 border">
-          <div className="card-body">
-            <h2 className="card-title">Horario</h2>
-            <p className="opacity-70">Lunes a Viernes, 9am–6pm (CDMX)</p>
-          </div>
-        </div>
-      </aside>
-    </div>
+      </div>
+    </ComicPage>
   );
 }

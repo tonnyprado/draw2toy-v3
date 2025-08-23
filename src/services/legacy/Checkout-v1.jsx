@@ -1,11 +1,16 @@
 // src/pages/Checkout.jsx
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { useAuth } from "../../context/AuthContext";
-import { createPendingOrder } from "../orderService";
+import { createPendingOrder } from "../../services/orderService";
 
 import ShippingForm from "../../components/ShippingForm";
-import { emptyShipping, validateShipping } from "../shippingService";
+import { emptyShipping, validateShipping } from "../../services/shippingService";
+
+import ComicPage from "../../design/comic/layouts/ComicPage";
+import { Panel, ComicButton } from "../../design/comic/system";
 
 // 💵 mismas tarifas
 const PRICE = { S: 300, M: 500, L: 700 };
@@ -33,7 +38,7 @@ export default function Checkout() {
     return base + rush + emb + acc;
   };
   const computeLineTotal = (it) =>
-    Number(it.price ?? (computePerUnit(it) * Math.max(1, Number(it.qty) || 1)));
+    Number(it.price ?? computePerUnit(it) * Math.max(1, Number(it.qty) || 1));
 
   const subtotal = useMemo(
     () => items.reduce((sum, it) => sum + computeLineTotal(it), 0),
@@ -94,7 +99,7 @@ export default function Checkout() {
   }, [items]);
 
   const handlePay = async (uiMethod) => {
-    // ✅ Por ahora exige sesión (como acordamos). TODO: permitir pago invitado más adelante.
+    // ✅ Por ahora exige sesión
     if (!user) {
       alert("Inicia sesión para completar el pago.");
       navigate("/login");
@@ -105,7 +110,6 @@ export default function Checkout() {
     const { ok, errors, data } = validateShipping(shipping);
     if (!ok) {
       setShipErrors(errors);
-      // enfoque suave al formulario
       document.getElementById("shipping-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
@@ -143,7 +147,7 @@ export default function Checkout() {
         total,
         email: user.email, // invitado vendrá después (TODO)
         method,            // "card" | "oxxo"
-        shipping: data,    // 👈 dirección validada
+        shipping: data,    // dirección validada
         notes,
       });
 
@@ -161,76 +165,93 @@ export default function Checkout() {
 
   if (!items.length) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="alert alert-warning">
-          <span>No hay artículos en tu carrito.</span>
-        </div>
-        <Link className="btn btn-primary mt-4" to="/toyreq1">
-          Volver a Solicitud
-        </Link>
-      </div>
+      <ComicPage title="Checkout" subtitle="No hay artículos en tu carrito." halftone>
+        <Panel className="p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-sm opacity-80">
+              Sube dibujos y vuelve para completar tu pedido.
+            </div>
+            <ComicButton as={Link} to="/toyreq1">Volver a Solicitud</ComicButton>
+          </div>
+        </Panel>
+      </ComicPage>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* Modal controlado */}
-      {modalOpen && (
-        <dialog open className="modal">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Procesando</h3>
-            <p className="py-4">{modalMsg}</p>
-            {loading && <span className="loading loading-spinner loading-md" />}
-            <div className="modal-action">
-              <button
-                className="btn"
-                onClick={() => setModalOpen(false)}
-                disabled={loading}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </dialog>
-      )}
-
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Checkout</h1>
-        <Link to="/toyreq1" className="btn btn-ghost">Volver</Link>
-      </div>
+    <ComicPage
+      title="Checkout"
+      subtitle={isGuest ? "Completa los datos para continuar." : "Revisa tu pedido y completa el envío."}
+      halftone
+      actions={<ComicButton as={Link} to="/toyreq1" className="text-sm">Volver</ComicButton>}
+    >
+      {/* ===== Modal estilo cómic ===== */}
+      <AnimatePresence>
+        {modalOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-[#1B1A1F]/70 grid place-items-center px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="panel bg-white text-[#1B1A1F] w-full max-w-md p-5"
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1, transition: { type: "spring", stiffness: 180, damping: 16 } }}
+              exit={{ scale: 0.96, opacity: 0 }}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-xl font-black uppercase">Procesando</div>
+                  <div className="mt-1 text-sm opacity-80">{modalMsg}</div>
+                </div>
+                <div aria-hidden className="ml-2">
+                  {loading ? <span className="loading loading-spinner loading-md" /> : null}
+                </div>
+              </div>
+              <div className="mt-5 flex justify-end">
+                <ComicButton onClick={() => setModalOpen(false)} disabled={loading}>
+                  Cerrar
+                </ComicButton>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Columna izquierda: items */}
-        <div className="lg:col-span-2 card bg-base-100 shadow-sm border">
-          <div className="card-body">
-            <h2 className="card-title">Tu pedido</h2>
-            <ul className="divide-y divide-base-300/60">
+        {/* ===== Columna izquierda: items ===== */}
+        <Panel className="lg:col-span-2 p-0 overflow-hidden">
+          <div className="p-5 sm:p-6">
+            <h2 className="text-2xl font-black uppercase">Tu pedido</h2>
+
+            <ul className="mt-4 divide-y divide-[#1B1A1F]/10">
               {items.map((it, idx) => {
                 const qty = Math.max(1, Number(it.qty) || 1);
                 const unitPrice = computePerUnit(it);
                 const lineTotal = computeLineTotal(it);
                 const base = PRICE[it.size] || 0;
-                const rush = it.rush ? EXTRA_COST.rush : 0;
-                const emb = it.embroidery?.trim() ? EXTRA_COST.embroidery : 0;
                 const acc = (Number(it.accessories) || 0) * EXTRA_COST.accessory;
 
                 return (
                   <li key={it.id || idx} className="py-4 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4 min-w-0">
-                      <div className="avatar">
-                        <div className="w-16 h-16 rounded-lg bg-base-200 overflow-hidden">
-                          {previews[idx] ? (
-                            <img alt={`Peluche ${idx + 1}`} className="object-cover w-full h-full" src={previews[idx]} />
-                          ) : (
-                            <div className="skeleton w-full h-full" />
-                          )}
-                        </div>
+                      <div className="w-16 h-16 rounded-lg bg-[#F7F1FF] overflow-hidden grid place-items-center border-2 border-[#1B1A1F]">
+                        {previews[idx] ? (
+                          <img
+                            alt={`Peluche ${idx + 1}`}
+                            className="object-cover w-full h-full"
+                            src={previews[idx]}
+                          />
+                        ) : (
+                          <div className="skeleton w-full h-full" />
+                        )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-medium truncate">Peluche #{idx + 1}</div>
-                        <div className="text-sm opacity-80">Tamaño: {it.size} · Cantidad: {qty}</div>
+                        <div className="font-bold truncate uppercase">Peluche #{idx + 1}</div>
+                        <div className="text-xs opacity-80">Tamaño: {it.size} · Cantidad: {qty}</div>
 
-                        <div className="mt-1 text-xs opacity-70 space-y-0.5">
+                        <div className="mt-2 text-xs opacity-80 space-y-0.5">
                           <div>Base ({it.size}): ${base}</div>
                           {it.rush && <div>Rush: +${EXTRA_COST.rush}</div>}
                           {!!(it.embroidery?.trim()) && <div>Bordado: +${EXTRA_COST.embroidery}</div>}
@@ -242,14 +263,14 @@ export default function Checkout() {
 
                     <div className="text-right shrink-0">
                       <div className="text-xs opacity-70">Total renglón</div>
-                      <div className="text-lg font-semibold">${lineTotal}</div>
+                      <div className="text-lg font-extrabold">${lineTotal}</div>
                     </div>
                   </li>
                 );
               })}
             </ul>
 
-            <div className="mt-4 flex flex-wrap gap-2 items-center text-sm">
+            <div className="mt-4 flex flex-wrap gap-2 items-center text-xs">
               <span className="badge">S: {countBySize.S}</span>
               <span className="badge">M: {countBySize.M}</span>
               <span className="badge">L: {countBySize.L}</span>
@@ -259,71 +280,72 @@ export default function Checkout() {
             </div>
 
             {notes && (
-              <div className="alert mt-4">
-                <span><b>Notas:</b> {notes}</span>
+              <div className="panel mt-4 p-3 bg-[#FFF7EC] border-[#1B1A1F]">
+                <span className="text-sm">
+                  <b>Notas:</b> {notes}
+                </span>
               </div>
             )}
           </div>
-        </div>
+        </Panel>
 
-        {/* Columna derecha: Envío + Resumen + Pago */}
-        <div className="lg:col-span-1 space-y-6">
-          <div id="shipping-card" className="card bg-base-100 shadow-sm border">
-            <div className="card-body">
-              <h2 className="card-title">Dirección de envío</h2>
+        {/* ===== Columna derecha: Envío + Resumen + Pago ===== */}
+        <div className="space-y-6">
+          <Panel id="shipping-card" className="p-5">
+            <h2 className="text-xl font-black uppercase">Dirección de envío</h2>
+            <div className="mt-3">
               <ShippingForm value={shipping} onChange={setShipping} errors={shipErrors} />
             </div>
-          </div>
+          </Panel>
 
-          <div className="card bg-base-100 shadow-sm border">
-            <div className="card-body">
-              <h2 className="card-title">Resumen</h2>
+          <Panel className="p-5">
+            <h2 className="text-xl font-black uppercase">Resumen</h2>
 
-              <div className="flex justify-between text-sm">
+            <div className="mt-3 space-y-1 text-sm">
+              <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>${subtotal}</span>
               </div>
-
-              <div className="divider my-2"></div>
-
-              <div className="flex justify-between text-lg font-bold">
+              <div className="border-t border-[#1B1A1F]/10 my-2" />
+              <div className="flex justify-between text-lg font-black">
                 <span>Total</span>
                 <span>${total}</span>
               </div>
-
-              <div className="mt-4 space-y-2">
-                <button
-                  className="btn btn-primary w-full"
-                  onClick={() => handlePay("Tarjeta")}
-                  disabled={loading}
-                >
-                  {loading ? "Procesando…" : "Pagar con Tarjeta"}
-                </button>
-
-                <button
-                  className="btn w-full"
-                  onClick={() => alert("Mercado Pago estará disponible pronto.")}
-                  disabled={loading}
-                >
-                  Mercado Pago (próximamente)
-                </button>
-
-                <button
-                  className="btn btn-accent w-full"
-                  onClick={() => handlePay("Pago en tienda (QR)")}
-                  disabled={loading}
-                >
-                  {loading ? "Procesando…" : "Pagar en OXXO"}
-                </button>
-              </div>
-
-              <Link to="/toyreq1" className="btn btn-ghost w-full mt-2" aria-disabled={loading}>
-                Seguir editando
-              </Link>
             </div>
-          </div>
+
+            <div className="mt-4 space-y-2">
+              <ComicButton
+                className="w-full justify-center"
+                onClick={() => handlePay("Tarjeta")}
+                disabled={loading}
+              >
+                {loading ? "Procesando…" : "Pagar con Tarjeta"}
+              </ComicButton>
+
+              <ComicButton
+                variant="ghost"
+                className="w-full justify-center"
+                onClick={() => alert("Mercado Pago estará disponible pronto.")}
+                disabled={loading}
+              >
+                Mercado Pago (próximamente)
+              </ComicButton>
+
+              <ComicButton
+                className="w-full justify-center"
+                onClick={() => handlePay("Pago en tienda (QR)")}
+                disabled={loading}
+              >
+                {loading ? "Procesando…" : "Pagar en OXXO"}
+              </ComicButton>
+            </div>
+
+            <Link to="/toyreq1" className="underline block text-center mt-3 text-sm">
+              Seguir editando
+            </Link>
+          </Panel>
         </div>
       </div>
-    </div>
+    </ComicPage>
   );
 }
