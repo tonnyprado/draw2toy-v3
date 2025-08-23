@@ -1,5 +1,5 @@
 // src/App.jsx
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
 import Navbar from "./components/Navbar";
@@ -10,7 +10,7 @@ import SignUp from "./authentication/components/SignUpUI";
 import ToyRequest from "./services/ToyRequest";
 import ToyRequest1 from "./services/legacy/ToyRequest-v1";
 import Checkout from "./services/legacy/Checkout-v1";
-import Pedido from "./services/legacy/Pedidos"; // Detalle (último pedido o :orderId)
+import Pedido from "./services/legacy/Pedidos";
 import PageFade from "./components/PageFade";
 
 // Auth
@@ -19,10 +19,8 @@ import PrivateRoute from "./routes/PrivateRoute";
 import AdminRoute from "./routes/AdminRoute";
 
 // Páginas opcionales
-import PedidosUsuario from "./pages/PedidosUsuario";   // Lista de pedidos del usuario (opcional en /pedidos)
-import About from "./pages/About";                     // Pública "Acerca de" (opcional)
-
-// Admin
+import PedidosUsuario from "./pages/PedidosUsuario";
+import About from "./pages/About";
 import AdminShell from "./pages/admin/AdminShell";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminAbout from "./pages/admin/AdminAbout";
@@ -57,8 +55,6 @@ function AnimatedRoutes() {
           element={<PrivateRoute><PageFade><PayPage /></PageFade></PrivateRoute>}
         />
 
-
-
         {/* Privadas */}
         <Route
           path="/toyrequest"
@@ -68,12 +64,10 @@ function AnimatedRoutes() {
           path="/toyreq1"
           element={<PrivateRoute><PageFade><ToyRequest1 /></PageFade></PrivateRoute>}
         />
-        <Route
-          path="/checkout"
-          element={<PrivateRoute><PageFade><Checkout /></PageFade></PrivateRoute>}
-        />
+        {/* ⚠️ Tenías /checkout duplicado (público y privado). Deja solo uno. */}
+        {/* <Route path="/checkout" element={<PrivateRoute><PageFade><Checkout /></PageFade></PrivateRoute>} /> */}
 
-        {/* ✅ Tu flujo actual: /pedido muestra detalle (o el último) */}
+        {/* Detalle de pedido */}
         <Route
           path="/pedido"
           element={<PrivateRoute><PageFade><Pedido /></PageFade></PrivateRoute>}
@@ -83,13 +77,13 @@ function AnimatedRoutes() {
           element={<PrivateRoute><PageFade><Pedido /></PageFade></PrivateRoute>}
         />
 
-        {/* 🟰 Extra opcional: lista del usuario en /pedidos (no cambia tu navbar) */}
+        {/* Lista de pedidos del usuario */}
         <Route
           path="/pedidos"
           element={<PrivateRoute><PageFade><PedidosUsuario /></PageFade></PrivateRoute>}
         />
 
-        {/* SOLO ADMIN USER — Opción A con AdminShell */}
+        {/* Admin */}
         <Route
           path="/admin"
           element={
@@ -142,8 +136,6 @@ function AnimatedRoutes() {
             </AdminRoute>
           }
         />
-
-
       </Routes>
     </AnimatePresence>
   );
@@ -152,11 +144,10 @@ function AnimatedRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Navbar />
-        <AnimatedRoutes />
-        <Footer />
-      </Router>
+      {/* Ya NO envolvemos con <Router>; el HashRouter viene desde main.jsx */}
+      <Navbar />
+      <AnimatedRoutes />
+      <Footer />
     </AuthProvider>
   );
 }
