@@ -1,11 +1,25 @@
 // src/pages/SolicitudJuguete.jsx
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext"; // ⬅️ si ya tienes este contexto
 
 export default function ToyRequest1() {
   const PRICE = { S: 300, M: 500, L: 700 };
-  const [items, setItems] = useState([]);
+
+  const { user } = useAuth(); // ⬅️ saber si hay sesión
   const navigate = useNavigate();
+
+  // guestEmail desde localStorage (solo lectura aquí)
+  const [guestEmail, setGuestEmail] = useState(() => localStorage.getItem("guestEmail") || "");
+
+  // Guard: exige sesión o guestEmail antes de continuar
+  useEffect(() => {
+    if (!user && !guestEmail) {
+      navigate("/pedido-rapido", { replace: true });
+    }
+  }, [user, guestEmail, navigate]);
+
+  const [items, setItems] = useState([]);
 
   const handleFiles = (e) => {
     const files = Array.from(e.target.files || []);
@@ -42,12 +56,30 @@ export default function ToyRequest1() {
   );
 
   const proceedCheckout = () => {
-    // Navega al checkout y lleva los datos
-    navigate("/checkout", { state: { items, total } });
+    // Navega al checkout y lleva los datos (+ guestEmail si aplica)
+    navigate("/checkout", { state: { items, total, guestEmail: user ? null : guestEmail } });
+  };
+
+  const changeGuestEmail = () => {
+    localStorage.removeItem("guestEmail");
+    setGuestEmail("");
+    navigate("/pedido-rapido");
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Aviso de invitado */}
+      {!user && guestEmail && (
+        <div className="alert alert-info mb-4">
+          <span>
+            Compras como invitado: <b>{guestEmail}</b>
+          </span>
+          <button className="btn btn-ghost btn-sm" onClick={changeGuestEmail}>
+            Cambiar correo
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
         <div>
@@ -96,18 +128,21 @@ export default function ToyRequest1() {
                   <span className="text-sm opacity-70">Tamaño</span>
                   <div className="join">
                     <button
+                      type="button"
                       className={`btn btn-sm join-item ${it.size === "S" ? "btn-active" : ""}`}
                       onClick={() => setSize(it.id, "S")}
                     >
                       S
                     </button>
                     <button
+                      type="button"
                       className={`btn btn-sm join-item ${it.size === "M" ? "btn-active" : ""}`}
                       onClick={() => setSize(it.id, "M")}
                     >
                       M
                     </button>
                     <button
+                      type="button"
                       className={`btn btn-sm join-item ${it.size === "L" ? "btn-active" : ""}`}
                       onClick={() => setSize(it.id, "L")}
                     >
@@ -125,6 +160,7 @@ export default function ToyRequest1() {
                 {/* Acciones */}
                 <div className="card-actions justify-end">
                   <button
+                    type="button"
                     onClick={() => removeItem(it.id)}
                     className="btn btn-ghost btn-sm"
                   >

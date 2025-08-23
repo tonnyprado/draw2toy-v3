@@ -1,2 +1,16 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui"{
+  themes: cupcake --default, retro;
+}
+
+@plugin "daisyui/theme"{
+  name: "cupcake";
+  default: true;
+
+  --color-base-100: #ece3c6; /* fondo principal “papel” */
+  --color-base-200: #e0d6b8; /* elevación 1 (cards ligeras) */
+  --color-base-300: #d4caa9; /* elevación 2 (bordes/controles) */
+
+  --color-primary: #C0624F;
+  --color-primary-content: #ffffff;
+}
