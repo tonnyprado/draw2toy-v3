@@ -1,0 +1,3 @@
+import PresentationComic from "@/components/PresentationComic";
+// ...
+<PresentationComic />

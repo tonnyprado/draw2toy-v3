@@ -1,44 +1,23 @@
-// src/design/comic/pages/PresentationContent.jsx
+// src/design/comic/pages/PresentationComic.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-/**
- * 🎨 Comic Landing — SOLO CONTENIDO (sin navbar/overlay/footer)
- * - Smooth scroll
- * - Hero + Cómo funciona + Galería fullscreen + FAQ
- * - Animaciones tipo cómic; galería alterna izquierda/derecha y “vibra”
- */
-
 // Animations
-const fadeIn = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 120, damping: 18 } },
-};
-const pop = {
-  hidden: { opacity: 0, scale: 0.85, rotate: -6 },
-  show: { opacity: 1, scale: 1, rotate: 0, transition: { type: "spring", stiffness: 180, damping: 12 } },
-};
-const galleryVars = {
-  hiddenLeft: { opacity: 0, x: -80, rotate: -2 },
-  hiddenRight: { opacity: 0, x: 80, rotate: 2 },
-  show: { opacity: 1, x: 0, rotate: 0, transition: { type: "spring", stiffness: 120, damping: 18 } },
-};
+const fadeIn = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 120, damping: 18 } } };
+const pop = { hidden: { opacity: 0, scale: 0.85, rotate: -6 }, show: { opacity: 1, scale: 1, rotate: 0, transition: { type: "spring", stiffness: 180, damping: 12 } } };
+const galleryVars = { hiddenLeft: { opacity: 0, x: -80, rotate: -2 }, hiddenRight: { opacity: 0, x: 80, rotate: 2 }, show: { opacity: 1, x: 0, rotate: 0, transition: { type: "spring", stiffness: 120, damping: 18 } } };
 
-export default function PresentationContent() {
+export default function PresentationComic() {
   return (
     <div className="relative min-h-screen bg-[#FFF7EC] text-[#1B1A1F] overflow-x-hidden">
       {/* Halftone background */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-25"
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 opacity-25"
         style={{
           backgroundImage: "radial-gradient(#1B1A1F 1px, transparent 1px)",
           backgroundSize: "12px 12px",
-          maskImage:
-            "linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.4) 40%, rgba(0,0,0,.12) 70%, rgba(0,0,0,0) 100%)",
-          WebkitMaskImage:
-            "linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.4) 40%, rgba(0,0,0,.12) 70%, rgba(0,0,0,0) 100%)",
+          maskImage: "linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.4) 40%, rgba(0,0,0,.12) 70%, rgba(0,0,0,0) 100%)",
+          WebkitMaskImage: "linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.4) 40%, rgba(0,0,0,.12) 70%, rgba(0,0,0,0) 100%)",
         }}
       />
 
@@ -48,8 +27,7 @@ export default function PresentationContent() {
         <div className="container mx-auto px-6 pt-10 pb-20 grid lg:grid-cols-12 gap-10 items-center">
           <motion.div variants={fadeIn} initial="hidden" animate="show" className="lg:col-span-6">
             <h1 className="leading-[0.95] font-black uppercase tracking-tight text-5xl sm:text-6xl">
-              Del garabato<br />
-              <span className="comic-outline inline-block">al peluche</span>
+              Del garabato<br /><span className="comic-outline inline-block">al peluche</span>
             </h1>
             <p className="mt-5 text-lg text-[#1B1A1F]/80 max-w-xl">
               Para mamás y papás que quieren dar vida a la imaginación de sus peques. Sube un dibujo y lo convertimos en un peluche único.
@@ -99,9 +77,7 @@ export default function PresentationContent() {
 
       {/* ===== GALERÍA FULL-SCREEN ===== */}
       <section id="galeria" className="relative">
-        {GALLERY.map((card, i) => (
-          <GalleryItem key={i} index={i} {...card} />
-        ))}
+        {GALLERY.map((card, i) => (<GalleryItem key={i} index={i} {...card} />))}
       </section>
 
       {/* ===== FAQ ===== */}
@@ -117,7 +93,7 @@ export default function PresentationContent() {
         </div>
       </section>
 
-      {/* Estilos locales mínimos */}
+      {/* Estilos locales estrictamente necesarios */}
       <style>{`
         html { scroll-behavior: smooth; }
         .comic-btn { background: #FFEC48; border: 2.5px solid #1B1A1F; box-shadow: 4px 4px 0 #1B1A1F; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; transition: transform 120ms ease, box-shadow 120ms ease; }
@@ -135,17 +111,13 @@ export default function PresentationContent() {
   );
 }
 
-/* ===== subcomponentes ===== */
+/* ===== subcomponentes mínimos (idénticos a tu versión) ===== */
 function SpeedLines({ position = "top" }) {
   return (
-    <div
-      aria-hidden
-      className={`speed-lines pointer-events-none absolute left-0 right-0 ${position === "top" ? "top-0 h-10" : "bottom-0 h-10"}`}
-      style={{ maskImage: "linear-gradient(0deg, transparent, black)", WebkitMaskImage: "linear-gradient(0deg, transparent, black)" }}
-    />
+    <div aria-hidden className={`speed-lines pointer-events-none absolute left-0 right-0 ${position === "top" ? "top-0 h-10" : "bottom-0 h-10"}`}
+      style={{ maskImage: "linear-gradient(0deg, transparent, black)", WebkitMaskImage: "linear-gradient(0deg, transparent, black)" }} />
   );
 }
-
 function Onoma({ text = "¡WOW!", variant = "yellow" }) {
   const color = variant === "accent" ? "#6EE7F9" : "#FFEC48";
   return (
@@ -153,38 +125,26 @@ function Onoma({ text = "¡WOW!", variant = "yellow" }) {
       <svg width="120" height="120" viewBox="0 0 120 120" className="overflow-visible">
         <g transform="translate(60,60)">
           <Starburst r={48} spikes={16} fill={color} stroke="#1B1A1F" />
-          <text x="0" y="6" textAnchor="middle" fontSize="22" fontWeight="900" fill="#1B1A1F">
-            {text}
-          </text>
+          <text x="0" y="6" textAnchor="middle" fontSize="22" fontWeight="900" fill="#1B1A1F">{text}</text>
         </g>
       </svg>
     </div>
   );
 }
-
 function Starburst({ r = 40, spikes = 14, fill = "#FFEC48", stroke = "#1B1A1F" }) {
-  const points = [];
-  const inner = r * 0.6;
+  const points = []; const inner = r * 0.6;
   for (let i = 0; i < spikes * 2; i++) {
-    const angle = (i * Math.PI) / spikes;
-    const rad = i % 2 === 0 ? r : inner;
-    const x = Math.cos(angle) * rad;
-    const y = Math.sin(angle) * rad;
-    points.push(`${x},${y}`);
+    const angle = (i * Math.PI) / spikes; const rad = i % 2 === 0 ? r : inner;
+    points.push(`${Math.cos(angle) * rad},${Math.sin(angle) * rad}`);
   }
-  return <polygon points={points.join(" ")} fill={fill} stroke={stroke} strokeWidth="3" />;
+  return <polygon points={points.join(" ")} fill={fill} stroke={stroke} strokeWidth="3" transform="translate(60,60)" />;
 }
-
 function SpeechBubble({ children, className = "" }) {
   return (
     <div className={`speech ${className}`}>
       <svg viewBox="0 0 600 420" className="w-full h-auto">
-        <path
-          d="M40 60 h440 a40 40 0 0 1 40 40 v150 a40 40 0 0 1 -40 40 H170 l-90 50 18-50 H80 a40 40 0 0 1 -40 -40 V100 a40 40 0 0 1 40 -40 z"
-          fill="#FFFFFF"
-          stroke="#1B1A1F"
-          strokeWidth="6"
-        />
+        <path d="M40 60 h440 a40 40 0 0 1 40 40 v150 a40 40 0 0 1 -40 40 H170 l-90 50 18-50 H80 a40 40 0 0 1 -40 -40 V100 a40 40 0 0 1 40 -40 z"
+          fill="#FFFFFF" stroke="#1B1A1F" strokeWidth="6" />
         <foreignObject x="60" y="80" width="440" height="200">
           <div className="w-full h-full flex items-center justify-center p-3">{children}</div>
         </foreignObject>
@@ -192,7 +152,6 @@ function SpeechBubble({ children, className = "" }) {
     </div>
   );
 }
-
 function MiniScene() {
   return (
     <svg viewBox="0 0 440 200" className="w-full h-auto">
@@ -215,19 +174,14 @@ function MiniScene() {
     </svg>
   );
 }
-
 function StarSmall({ x, y }) {
-  const pts = [];
-  const r = 7;
-  const inner = r * 0.6;
+  const pts = []; const r = 7; const inner = r * 0.6;
   for (let i = 0; i < 10; i++) {
-    const angle = (i * Math.PI) / 5;
-    const rad = i % 2 === 0 ? r : inner;
+    const angle = (i * Math.PI) / 5; const rad = i % 2 === 0 ? r : inner;
     pts.push(`${x + Math.cos(angle) * rad},${y + Math.sin(angle) * rad}`);
   }
   return <polygon points={pts.join(" ")} />;
 }
-
 function ComicPanel({ title, caption, children }) {
   return (
     <div className="panel p-4">
@@ -240,47 +194,26 @@ function ComicPanel({ title, caption, children }) {
     </div>
   );
 }
-
-/* ======== GALERÍA ======== */
 const GALLERY = [
   { title: "Monstruo sonriente", desc: "Conservamos los dientes chuequitos y la mancha azul tal cual.", tone: "#F7F1FF" },
   { title: "Robot bailarín", desc: "Brazos articulados y luz en el pecho bordada.", tone: "#E6FBFF" },
   { title: "Gatita estelar", desc: "Orejas con glitter suave y cola esponjosa.", tone: "#D2F5E3" },
 ];
-
 function GalleryItem({ index, title, desc, tone }) {
   const side = index % 2 === 0 ? "left" : "right";
   const imgInitial = side === "left" ? "hiddenLeft" : "hiddenRight";
   const textInitial = side === "left" ? "hiddenRight" : "hiddenLeft";
-
   return (
     <section className="min-h-[100svh] flex items-center scroll-mt-24">
       <div className="container mx-auto px-6 grid lg:grid-cols-12 gap-10 items-center">
-        {/* Imagen */}
-        <motion.div
-          className={`lg:col-span-6 ${side === "right" ? "lg:order-2" : "lg:order-1"}`}
-          variants={galleryVars}
-          initial={imgInitial}
-          whileInView="show"
-          viewport={{ amount: 0.6, once: false }}
-        >
+        <motion.div className={`lg:col-span-6 ${side === "right" ? "lg:order-2" : "lg:order-1"}`} variants={galleryVars} initial={imgInitial} whileInView="show" viewport={{ amount: 0.6, once: false }}>
           <div className="relative panel overflow-hidden">
             <div className="aspect-[4/3] grid place-items-center" style={{ background: tone }}>
-              <div className="jiggle w-[82%]">
-                <GalleryMock />
-              </div>
+              <div className="jiggle w-[82%]"><GalleryMock /></div>
             </div>
           </div>
         </motion.div>
-
-        {/* Texto */}
-        <motion.div
-          className={`lg:col-span-6 ${side === "right" ? "lg:order-1 text-left lg:text-right" : "lg:order-2"}`}
-          variants={galleryVars}
-          initial={textInitial}
-          whileInView="show"
-          viewport={{ amount: 0.6, once: false }}
-        >
+        <motion.div className={`lg:col-span-6 ${side === "right" ? "lg:order-1 text-left lg:text-right" : "lg:order-2"}`} variants={galleryVars} initial={textInitial} whileInView="show" viewport={{ amount: 0.6, once: false }}>
           <h3 className="text-4xl font-black uppercase leading-tight">{title}</h3>
           <p className="mt-3 text-lg text-[#1B1A1F]/75 max-w-prose">{desc}</p>
           <div className={`mt-6 ${side === "right" ? "lg:justify-end" : ""} flex gap-3`}>
@@ -292,7 +225,6 @@ function GalleryItem({ index, title, desc, tone }) {
     </section>
   );
 }
-
 function GalleryMock() {
   return (
     <svg viewBox="0 0 420 300" className="w-full h-auto">
@@ -306,53 +238,5 @@ function GalleryMock() {
         <ellipse cx="160" cy="140" rx="20" ry="40" />
       </g>
     </svg>
-  );
-}
-
-function PanelArt({ type = "upload" }) {
-  if (type === "sizes") {
-    return (
-      <svg viewBox="0 0 320 200" className="w-full h-auto">
-        <rect x="0" y="0" width="320" height="200" fill="#F7F1FF" />
-        <g transform="translate(40,40)" stroke="#1B1A1F" strokeWidth="4" fill="#fff">
-          <rect x="0" y="40" width="60" height="80" />
-          <rect x="90" y="20" width="80" height="120" />
-          <rect x="200" y="0" width="60" height="160" />
-        </g>
-      </svg>
-    );
-  }
-  if (type === "ship") {
-    return (
-      <svg viewBox="0 0 320 200" className="w-full h-auto">
-        <rect x="0" y="0" width="320" height="200" fill="#E6FBFF" />
-        <g transform="translate(30,40)" stroke="#1B1A1F" strokeWidth="4" fill="#fff">
-          <rect x="0" y="70" width="260" height="50" />
-          <rect x="20" y="40" width="200" height="30" />
-          <circle cx="50" cy="95" r="6" fill="#1B1A1F" />
-          <circle cx="80" cy="95" r="6" fill="#1B1A1F" />
-          <circle cx="110" cy="95" r="6" fill="#1B1A1F" />
-        </g>
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 320 200" className="w-full h-auto">
-      <rect x="0" y="0" width="320" height="200" fill="#D2F5E3" />
-      <g transform="translate(60,30)" stroke="#1B1A1F" strokeWidth="4" fill="#fff">
-        <rect x="0" y="0" width="200" height="140" />
-        <path d="M40 90 L80 50 L120 90" fill="none" />
-        <rect x="140" y="20" width="40" height="16" />
-      </g>
-    </svg>
-  );
-}
-
-function FaqItem({ q, a }) {
-  return (
-    <details className="panel p-4">
-      <summary className="cursor-pointer font-bold">{q}</summary>
-      <p className="mt-2 text-sm text-[#1B1A1F]/80">{a}</p>
-    </details>
   );
 }

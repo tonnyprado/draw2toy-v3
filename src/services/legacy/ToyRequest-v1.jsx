@@ -1,7 +1,7 @@
-// src/pages/SolicitudJuguete.jsx
-import { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { ComicPage, Panel, ComicButton, GhostButton, ComicSteps, Onoma } from "../../design/comic";
 
 export default function ToyRequest1() {
   // Precios base (por pieza)
@@ -42,10 +42,7 @@ export default function ToyRequest1() {
     return (base + rush + emb + accessory) * qty;
   };
 
-  const subtotal = useMemo(
-    () => items.reduce((sum, it) => sum + computeItemPrice(it), 0),
-    [items]
-  );
+  const subtotal = useMemo(() => items.reduce((sum, it) => sum + computeItemPrice(it), 0), [items]);
 
   // --- Paso 1: subir/ordenar ---
   const handleFiles = (e) => {
@@ -59,15 +56,15 @@ export default function ToyRequest1() {
       size: "M",
       qty: 1,
       rush: false,
-      embroidery: "", // texto del bordado opcional
-      accessories: 0, // cantidad de accesorios
+      embroidery: "",
+      accessories: 0,
     }));
 
     if (files.length > remaining) {
       alert(`Máximo ${MAX_IMAGES} imágenes en total.`);
     }
     setItems((prev) => [...prev, ...slice]);
-    e.target.value = null; // limpia input
+    e.target.value = null;
   };
 
   const moveItem = (id, dir) => {
@@ -87,25 +84,11 @@ export default function ToyRequest1() {
   };
 
   // --- Paso 2: personalización por ítem ---
-  const setSize = (id, size) => {
-    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, size } : it)));
-  };
-  const setQty = (id, qty) => {
-    setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, qty: Math.max(1, Number(qty) || 1) } : it))
-    );
-  };
-  const toggleRush = (id) => {
-    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, rush: !it.rush } : it)));
-  };
-  const setEmbroidery = (id, val) => {
-    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, embroidery: val } : it)));
-  };
-  const setAccessories = (id, count) => {
-    setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, accessories: Math.max(0, Number(count) || 0) } : it))
-    );
-  };
+  const setSize = (id, size) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, size } : it)));
+  const setQty = (id, qty) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, qty: Math.max(1, Number(qty) || 1) } : it)));
+  const toggleRush = (id) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, rush: !it.rush } : it)));
+  const setEmbroidery = (id, val) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, embroidery: val } : it)));
+  const setAccessories = (id, count) => setItems((prev) => prev.map((it) => (it.id === id ? { ...it, accessories: Math.max(0, Number(count) || 0) } : it)));
 
   // --- Paso 3: guest email helper ---
   const changeGuestEmail = () => {
@@ -117,8 +100,8 @@ export default function ToyRequest1() {
   // --- Navegación entre pasos ---
   const canNext = () => {
     if (step === 1) return items.length > 0;
-    if (step === 2) return items.length > 0; // ya con defaults
-    if (step === 3) return true; // notas opcionales
+    if (step === 2) return items.length > 0;
+    if (step === 3) return true;
     return true;
   };
   const next = () => { if (canNext()) setStep((s) => Math.min(4, s + 1)); };
@@ -127,7 +110,6 @@ export default function ToyRequest1() {
   // --- Ir a checkout ---
   const proceedCheckout = () => {
     if (!items.length) return;
-    // Normaliza items para checkout
     const itemsForCheckout = items.map((it) => ({
       id: it.id,
       size: it.size,
@@ -135,437 +117,280 @@ export default function ToyRequest1() {
       rush: !!it.rush,
       embroidery: it.embroidery?.trim() || "",
       accessories: Number(it.accessories) || 0,
-      price: computeItemPrice(it), // precio TOTAL de este renglón (incluye qty y extras)
-      imageUrl: it.imageUrl || null, // (si luego subes a storage)
-      file: it.file || null,        // para vista previa en checkout
+      price: computeItemPrice(it),
+      imageUrl: it.imageUrl || null,
+      file: it.file || null,
     }));
 
     navigate("/checkout", {
-      state: {
-        items: itemsForCheckout,
-        total: subtotal,
-        guestEmail: user ? null : guestEmail,
-        notes: orderNotes || "",
-      },
+      state: { items: itemsForCheckout, total: subtotal, guestEmail: user ? null : guestEmail, notes: orderNotes || "" },
     });
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Banner de invitado */}
-      {!user && guestEmail && (
-        <div className="alert alert-info mb-6 justify-between">
+    <ComicPage snap>
+      <div className="container mx-auto px-4 md:px-6 py-8 md:py-10">
+        {/* Banner de invitado */}
+        {!user && guestEmail && (
+          <Panel className="p-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" data-snap-item>
+            <div>Compras como invitado: <b>{guestEmail}</b></div>
+            <ComicButton onClick={changeGuestEmail}>Cambiar correo</ComicButton>
+          </Panel>
+        )}
+
+        {/* Encabezado */}
+        <section className="flex items-end justify-between gap-3 mb-6" data-snap-item>
           <div>
-            Compras como invitado: <b>{guestEmail}</b>
+            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight">Solicitud de peluche</h1>
+            <p className="text-sm md:text-base opacity-70 max-w-2xl">Sube los dibujos de tu peque, personaliza cada pieza y revisa el total antes de pagar.</p>
           </div>
-          <button className="btn btn-ghost btn-sm" onClick={changeGuestEmail}>
-            Cambiar correo
-          </button>
-        </div>
-      )}
+          <Onoma text={`$${subtotal}`} small />
+        </section>
 
-      {/* Progreso (steps) */}
-      <div className="mb-6">
-        <ul className="steps w-full">
-          <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Dibujos</li>
-          <li className={`step ${step >= 2 ? "step-primary" : ""}`}>Personaliza</li>
-          <li className={`step ${step >= 3 ? "step-primary" : ""}`}>Detalles</li>
-          <li className={`step ${step >= 4 ? "step-primary" : ""}`}>Revisión</li>
-        </ul>
-      </div>
+        {/* Progreso */}
+        <ComicSteps step={step} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Columna principal */}
-        <div className="lg:col-span-2 space-y-6">
-          {step === 1 && (
-            <StepUpload
-              items={items}
-              onFiles={handleFiles}
-              onMove={moveItem}
-              onRemove={removeItem}
-              max={MAX_IMAGES}
-            />
-          )}
-
-          {step === 2 && (
-            <StepCustomize
-              items={items}
-              setSize={setSize}
-              setQty={setQty}
-              toggleRush={toggleRush}
-              setEmbroidery={setEmbroidery}
-              setAccessories={setAccessories}
-              computeItemPrice={computeItemPrice}
-            />
-          )}
-
-          {step === 3 && (
-            <StepDetails
-              orderNotes={orderNotes}
-              setOrderNotes={setOrderNotes}
-              isGuest={!user}
-              guestEmail={guestEmail}
-            />
-          )}
-
-          {step === 4 && (
-            <StepReview
-              items={items}
-              computeItemPrice={computeItemPrice}
-              subtotal={subtotal}
-              onEditSection={(sectionStep) => setStep(sectionStep)}
-            />
-          )}
-
-          {/* Navegación de pasos */}
-          <div className="flex items-center justify-between">
-            <button className="btn btn-ghost" disabled={step === 1} onClick={back}>
-              ← Atrás
-            </button>
-            {step < 4 ? (
-              <button className="btn btn-primary" onClick={next} disabled={!canNext()}>
-                Siguiente →
-              </button>
-            ) : (
-              <button className="btn btn-accent" onClick={proceedCheckout}>
-                Ir a Checkout
-              </button>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          {/* Columna principal */}
+          <div className="lg:col-span-2 space-y-6">
+            {step === 1 && (
+              <StepUpload items={items} onFiles={handleFiles} onMove={moveItem} onRemove={removeItem} max={MAX_IMAGES} />
             )}
-          </div>
-        </div>
 
-        {/* Columna lateral: Resumen vivo */}
-        <aside className="lg:col-span-1">
-          <OrderSummary
-            items={items}
-            computeItemPrice={computeItemPrice}
-            subtotal={subtotal}
-          />
-        </aside>
+            {step === 2 && (
+              <StepCustomize items={items} setSize={setSize} setQty={setQty} toggleRush={toggleRush} setEmbroidery={setEmbroidery} setAccessories={setAccessories} computeItemPrice={computeItemPrice} />
+            )}
+
+            {step === 3 && (
+              <StepDetails orderNotes={orderNotes} setOrderNotes={setOrderNotes} isGuest={!user} guestEmail={guestEmail} />
+            )}
+
+            {step === 4 && (
+              <StepReview items={items} computeItemPrice={computeItemPrice} subtotal={subtotal} onEditSection={(sectionStep) => setStep(sectionStep)} />
+            )}
+
+            {/* Navegación de pasos */}
+            <div className="flex items-center justify-between" data-snap-item>
+              <GhostButton disabled={step === 1} onClick={back}>← Atrás</GhostButton>
+              {step < 4 ? (
+                <ComicButton onClick={next} disabled={!canNext()}>Siguiente →</ComicButton>
+              ) : (
+                <ComicButton className="bg-[#6EE7F9]" onClick={proceedCheckout}>Ir a Checkout</ComicButton>
+              )}
+            </div>
+          </div>
+
+          {/* Columna lateral: Resumen vivo */}
+          <aside className="lg:col-span-1" data-snap-item>
+            <OrderSummary items={items} computeItemPrice={computeItemPrice} subtotal={subtotal} />
+          </aside>
+        </div>
       </div>
-    </div>
+    </ComicPage>
   );
 }
 
-/* =================== Subcomponentes =================== */
-
-// Paso 1: Subir y ordenar
+/* =================== Subcomponentes (funcionalidad) =================== */
 function StepUpload({ items, onFiles, onMove, onRemove, max }) {
   return (
-    <div className="space-y-4">
+    <section className="space-y-4" data-snap-item>
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">De dibujo a peluche</h1>
-          <p className="text-sm opacity-70">
-            Sube hasta <b>{max}</b> imágenes. Puedes reordenarlas y eliminarlas.
-          </p>
+          <h2 className="text-2xl md:text-3xl font-black uppercase">De dibujo a peluche</h2>
+          <p className="text-sm opacity-70">Sube hasta <b>{max}</b> imágenes. Puedes reordenarlas y eliminarlas.</p>
         </div>
 
         <div className="flex items-center gap-3">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={onFiles}
-            disabled={items.length >= max}
-            className="file-input file-input-bordered"
-          />
-          <span className="badge badge-neutral">{items.length}/{max}</span>
+          <label className="comic-btn px-4 py-2 cursor-pointer">
+            Subir dibujos
+            <input type="file" accept="image/*" multiple onChange={onFiles} disabled={items.length >= max} className="hidden" />
+          </label>
+          <span className="px-3 py-2 border-2" style={{ borderColor: "#1B1A1F" }}>{items.length}/{max}</span>
         </div>
       </header>
 
       {items.length === 0 ? (
-        <div className="alert">
-          <span>Sube tus dibujos para comenzar.</span>
-        </div>
+        <Panel className="p-4 text-sm">Sube tus dibujos para comenzar.</Panel>
       ) : (
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
           {items.map((it, idx) => (
-            <div key={it.id} className="card bg-base-100 shadow-sm border">
-              <figure className="bg-base-200/60">
-                <img
-                  src={URL.createObjectURL(it.file)}
-                  alt={`Dibujo ${idx + 1}`}
-                  className="max-h-56 object-contain p-3"
-                />
-              </figure>
-              <div className="card-body gap-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm opacity-70">Imagen {idx + 1}</span>
-                  <div className="join">
-                    <button type="button" className="btn btn-sm join-item" onClick={() => onMove(it.id, -1)}>↑</button>
-                    <button type="button" className="btn btn-sm join-item" onClick={() => onMove(it.id, +1)}>↓</button>
-                  </div>
+            <Panel key={it.id}>
+              <figure className="bg-[#FDFDFD] border-b-2" style={{ borderColor: "#1B1A1F" }}>
+                <div className="p-3 grid place-items-center">
+                  <img src={URL.createObjectURL(it.file)} alt={`Dibujo ${idx + 1}`} className="max-h-56 object-contain jiggle" />
                 </div>
-                <div className="card-actions justify-end">
-                  <button type="button" onClick={() => onRemove(it.id)} className="btn btn-ghost btn-sm">
-                    Eliminar
-                  </button>
+              </figure>
+              <div className="p-3 flex items-center justify-between">
+                <span className="text-sm opacity-70">Imagen {idx + 1}</span>
+                <div className="flex items-center gap-2">
+                  <GhostButton onClick={() => onMove(it.id, -1)}>↑</GhostButton>
+                  <GhostButton onClick={() => onMove(it.id, +1)}>↓</GhostButton>
+                  <ComicButton onClick={() => onRemove(it.id)}>Eliminar</ComicButton>
                 </div>
               </div>
-            </div>
+            </Panel>
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
-// Paso 2: Personalización por ítem
-function StepCustomize({
-  items,
-  setSize,
-  setQty,
-  toggleRush,
-  setEmbroidery,
-  setAccessories,
-  computeItemPrice,
-}) {
-  if (items.length === 0) {
-    return <div className="alert">No hay imágenes. Vuelve al paso anterior.</div>;
-  }
-
+function StepCustomize({ items, setSize, setQty, toggleRush, setEmbroidery, setAccessories, computeItemPrice }) {
+  if (items.length === 0) return <Panel className="p-4">No hay imágenes. Vuelve al paso anterior.</Panel>;
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Personaliza tus peluches</h2>
+    <section className="space-y-4" data-snap-item>
+      <h2 className="text-2xl md:text-3xl font-black uppercase">Personaliza tus peluches</h2>
       <p className="text-sm opacity-70">Tamaño, cantidad y extras por pieza.</p>
 
       <div className="grid gap-6 grid-cols-1">
         {items.map((it, idx) => (
-          <div key={it.id} className="card bg-base-100 shadow-sm border">
-            <div className="card-body gap-5">
-              <div className="flex flex-col md:flex-row gap-5">
-                <div className="md:w-1/3 bg-base-200/60 rounded-box overflow-hidden grid place-items-center p-3">
-                  <img
-                    src={URL.createObjectURL(it.file)}
-                    alt={`Peluche ${idx + 1}`}
-                    className="max-h-56 object-contain"
-                  />
-                </div>
-
-                <div className="md:flex-1 space-y-4">
-                  {/* Tamaño */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm opacity-70">Tamaño</span>
-                    <div className="join">
-                      {["S", "M", "L"].map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          className={`btn btn-sm join-item ${it.size === s ? "btn-active" : ""}`}
-                          onClick={() => setSize(it.id, s)}
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Cantidad */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm opacity-70">Cantidad</span>
-                    <div className="join">
-                      <button
-                        type="button"
-                        className="btn btn-sm join-item"
-                        onClick={() => setQty(it.id, Math.max(1, (Number(it.qty) || 1) - 1))}
-                      >
-                        −
-                      </button>
-                      <input
-                        type="number"
-                        min={1}
-                        className="input input-sm input-bordered w-16 text-center join-item"
-                        value={it.qty}
-                        onChange={(e) => setQty(it.id, e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-sm join-item"
-                        onClick={() => setQty(it.id, (Number(it.qty) || 1) + 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Extras */}
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <div className="form-control">
-                      <label className="label cursor-pointer justify-between">
-                        <span className="label-text">Producción Rápida (Rush)</span>
-                        <input
-                          type="checkbox"
-                          className="toggle toggle-accent"
-                          checked={!!it.rush}
-                          onChange={() => toggleRush(it.id)}
-                        />
-                      </label>
-                      <span className="text-xs opacity-60">+${200} (por pieza)</span>
-                    </div>
-
-                    <div className="form-control">
-                      <label className="label"><span className="label-text">Bordado (nombre)</span></label>
-                      <input
-                        type="text"
-                        className="input input-bordered input-sm"
-                        placeholder="Ej. Sofi"
-                        value={it.embroidery}
-                        onChange={(e) => setEmbroidery(it.id, e.target.value)}
-                      />
-                      <span className="text-xs opacity-60 mt-1">+${120} si escribes algo</span>
-                    </div>
-
-                    <div className="form-control">
-                      <label className="label"><span className="label-text">Accesorios</span></label>
-                      <div className="join">
-                        <button
-                          type="button"
-                          className="btn btn-sm join-item"
-                          onClick={() => setAccessories(it.id, Math.max(0, (Number(it.accessories) || 0) - 1))}
-                        >
-                          −
-                        </button>
-                        <input
-                          type="number"
-                          min={0}
-                          className="input input-sm input-bordered w-16 text-center join-item"
-                          value={it.accessories}
-                          onChange={(e) => setAccessories(it.id, e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-sm join-item"
-                          onClick={() => setAccessories(it.id, (Number(it.accessories) || 0) + 1)}
-                        >
-                          +
-                        </button>
-                      </div>
-                      <span className="text-xs opacity-60 mt-1">+${150} c/u</span>
-                    </div>
-                  </div>
-                </div>
+          <Panel key={it.id} className="p-4">
+            <div className="flex flex-col md:flex-row gap-5">
+              <div className="md:w-1/3 bg-white rounded-[10px] overflow-hidden grid place-items-center p-3 border-2" style={{ borderColor: "#1B1A1F" }}>
+                <img src={URL.createObjectURL(it.file)} alt={`Peluche ${idx + 1}`} className="max-h-56 object-contain jiggle" />
               </div>
 
-              {/* Precio del ítem */}
-              <div className="flex items-center justify-end">
-                <div className="text-right">
-                  <div className="text-sm opacity-70">Total pieza {idx + 1}</div>
-                  <div className="text-xl font-bold">${computeItemPrice(it)}</div>
+              <div className="md:flex-1 space-y-4">
+                {/* Tamaño */}
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-sm opacity-70">Tamaño</span>
+                  <div className="flex border-2" style={{ borderColor: "#1B1A1F" }}>
+                    {["S", "M", "L"].map((s) => (
+                      <button key={s} type="button" className={`px-4 py-2 font-bold ${it.size === s ? "bg-[#FFEC48]" : "bg-white"}`} style={{ borderRight: "2px solid #1B1A1F" }} onClick={() => setSize(it.id, s)}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Cantidad */}
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-sm opacity-70">Cantidad</span>
+                  <div className="flex items-stretch border-2" style={{ borderColor: "#1B1A1F" }}>
+                    <button type="button" className="px-3 font-bold" onClick={() => setQty(it.id, Math.max(1, (Number(it.qty) || 1) - 1))}>−</button>
+                    <input type="number" min={1} className="w-16 text-center border-l-2 border-r-2" style={{ borderColor: "#1B1A1F" }} value={it.qty} onChange={(e) => setQty(it.id, e.target.value)} />
+                    <button type="button" className="px-3 font-bold" onClick={() => setQty(it.id, (Number(it.qty) || 1) + 1)}>+</button>
+                  </div>
+                </div>
+
+                {/* Extras */}
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Panel className="p-3">
+                    <label className="flex items-center justify-between gap-3">
+                      <span className="font-semibold">Producción Rápida (Rush)</span>
+                      <input type="checkbox" className="w-5 h-5" checked={!!it.rush} onChange={() => toggleRush(it.id)} />
+                    </label>
+                    <span className="text-xs opacity-60">+${200} (por pieza)</span>
+                  </Panel>
+
+                  <Panel className="p-3">
+                    <label className="font-semibold">Bordado (nombre)</label>
+                    <input type="text" className="mt-2 px-3 py-2 border-2 w-full" style={{ borderColor: "#1B1A1F" }} placeholder="Ej. Sofi" value={it.embroidery} onChange={(e) => setEmbroidery(it.id, e.target.value)} />
+                    <span className="text-xs opacity-60 mt-1 block">+${120} si escribes algo</span>
+                  </Panel>
+
+                  <Panel className="p-3 sm:col-span-2">
+                    <label className="font-semibold">Accesorios</label>
+                    <div className="mt-2 flex items-stretch border-2 w-fit" style={{ borderColor: "#1B1A1F" }}>
+                      <button type="button" className="px-3 font-bold" onClick={() => setAccessories(it.id, Math.max(0, (Number(it.accessories) || 0) - 1))}>−</button>
+                      <input type="number" min={0} className="w-16 text-center border-l-2 border-r-2" style={{ borderColor: "#1B1A1F" }} value={it.accessories} onChange={(e) => setAccessories(it.id, e.target.value)} />
+                      <button type="button" className="px-3 font-bold" onClick={() => setAccessories(it.id, (Number(it.accessories) || 0) + 1)}>+</button>
+                    </div>
+                    <span className="text-xs opacity-60 mt-1 block">+${150} c/u</span>
+                  </Panel>
                 </div>
               </div>
             </div>
-          </div>
+
+            {/* Precio del ítem */}
+            <div className="mt-4 flex items-center justify-end">
+              <div className="text-right">
+                <div className="text-sm opacity-70">Total pieza {idx + 1}</div>
+                <div className="text-2xl font-black">${computeItemPrice(it)}</div>
+              </div>
+            </div>
+          </Panel>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-// Paso 3: Detalles generales
 function StepDetails({ orderNotes, setOrderNotes, isGuest, guestEmail }) {
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Detalles del pedido</h2>
-      {isGuest && (
-        <div className="alert">
-          <span>Te contactaremos a <b>{guestEmail}</b> para validar colores y avances.</span>
-        </div>
-      )}
-      <div className="form-control">
-        <label className="label"><span className="label-text">Notas (opcional)</span></label>
-        <textarea
-          className="textarea textarea-bordered min-h-[120px]"
-          placeholder="Cuéntanos si hay colores clave, acabados, restricciones, etc."
-          value={orderNotes}
-          onChange={(e) => setOrderNotes(e.target.value)}
-        />
-      </div>
-      <div className="text-sm opacity-70">
-        * Los tiempos pueden variar según complejidad. Rush acelera producción.
-      </div>
-    </div>
+    <section className="space-y-4" data-snap-item>
+      <h2 className="text-2xl md:text-3xl font-black uppercase">Detalles del pedido</h2>
+      {isGuest && (<Panel className="p-3">Te contactaremos a <b>{guestEmail}</b> para validar colores y avances.</Panel>)}
+      <Panel className="p-4">
+        <label className="font-semibold">Notas (opcional)</label>
+        <textarea className="mt-2 w-full min-h-[120px] p-3 border-2" style={{ borderColor: "#1B1A1F" }} placeholder="Cuéntanos si hay colores clave, acabados, restricciones, etc." value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)} />
+      </Panel>
+      <div className="text-sm opacity-70">* Los tiempos pueden variar según complejidad. Rush acelera producción.</div>
+    </section>
   );
 }
 
-// Paso 4: Revisión final
 function StepReview({ items, computeItemPrice, subtotal, onEditSection }) {
-  if (!items.length) {
-    return <div className="alert">No hay artículos para revisar.</div>;
-  }
+  if (!items.length) return <Panel className="p-4">No hay artículos para revisar.</Panel>;
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Revisión</h2>
+    <section className="space-y-4" data-snap-item>
+      <h2 className="text-2xl md:text-3xl font-black uppercase">Revisión</h2>
       <p className="text-sm opacity-70">Verifica tamaños, cantidades y extras antes de pagar.</p>
 
       <div className="grid gap-6 grid-cols-1">
         {items.map((it, idx) => (
-          <div key={it.id} className="card bg-base-100 shadow-sm border">
-            <div className="card-body flex flex-col md:flex-row gap-4">
-              <div className="w-full md:w-40 bg-base-200/60 rounded-box overflow-hidden flex items-center justify-center">
+          <Panel key={it.id} className="p-3">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="w-full md:w-40 bg-white rounded overflow-hidden flex items-center justify-center border-2" style={{ borderColor: "#1B1A1F" }}>
                 {it.file ? (
-                  <img
-                    alt={`Peluche ${idx + 1}`}
-                    className="max-h-32 object-contain"
-                    src={URL.createObjectURL(it.file)}
-                  />
+                  <img alt={`Peluche ${idx + 1}`} className="max-h-32 object-contain jiggle" src={URL.createObjectURL(it.file)} />
                 ) : (
-                  <span className="text-xs opacity-60">Sin imagen</span>
+                  <span className="text-xs opacity-60 p-3">Sin imagen</span>
                 )}
               </div>
 
               <div className="flex-1">
                 <div className="font-semibold">Peluche {idx + 1}</div>
                 <div className="text-sm opacity-80">
-                  Tamaño: {it.size} · Cant: {it.qty} · Rush: {it.rush ? "Sí" : "No"} ·
-                  {` Bordado: ${it.embroidery?.trim() ? it.embroidery : "—"}`} · Accesorios: {it.accessories || 0}
+                  Tamaño: {it.size} · Cant: {it.qty} · Rush: {it.rush ? "Sí" : "No"} · {`Bordado: ${it.embroidery?.trim() ? it.embroidery : "—"}`} · Accesorios: {it.accessories || 0}
                 </div>
               </div>
 
               <div className="text-right">
                 <div className="text-lg font-bold">${computeItemPrice(it)}</div>
-                <button className="btn btn-link btn-xs" onClick={() => onEditSection(2)}>Editar</button>
+                <GhostButton className="mt-1" onClick={() => onEditSection(2)}>Editar</GhostButton>
               </div>
             </div>
-          </div>
+          </Panel>
         ))}
       </div>
 
-      <div className="rounded-box bg-base-100 shadow-sm border p-4 flex items-center justify-between">
+      <Panel className="p-4 flex items-center justify-between">
         <div className="text-xl">Total</div>
         <div className="text-2xl font-extrabold">${subtotal}</div>
-      </div>
-    </div>
+      </Panel>
+    </section>
   );
 }
 
-// Resumen lateral vivo
 function OrderSummary({ items, computeItemPrice, subtotal }) {
   return (
-    <div className="card bg-base-100 shadow-sm border sticky top-4">
-      <div className="card-body">
-        <h2 className="card-title">Resumen</h2>
-
+    <Panel className="sticky top-4" data-snap-item>
+      <div className="p-4">
+        <h2 className="text-xl font-black uppercase">Resumen</h2>
         {items.length === 0 ? (
-          <div className="text-sm opacity-70">Aún no has agregado dibujos.</div>
+          <div className="text-sm opacity-70 mt-2">Aún no has agregado dibujos.</div>
         ) : (
-          <ul className="space-y-3 max-h-[50vh] overflow-auto pr-1">
+          <ul className="space-y-3 max-h-[50vh] overflow-auto pr-1 mt-3">
             {items.map((it, idx) => (
               <li key={it.id} className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-base-200 rounded overflow-hidden grid place-items-center">
-                  {it.file ? (
-                    <img
-                      src={URL.createObjectURL(it.file)}
-                      alt={`Mini ${idx + 1}`}
-                      className="object-contain max-h-12"
-                    />
-                  ) : null}
+                <div className="w-12 h-12 bg-white rounded overflow-hidden grid place-items-center border-2" style={{ borderColor: "#1B1A1F" }}>
+                  {it.file ? <img src={URL.createObjectURL(it.file)} alt={`Mini ${idx + 1}`} className="object-contain max-h-12" /> : null}
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium">Peluche {idx + 1}</div>
-                  <div className="text-xs opacity-70">
-                    {it.size} · x{it.qty} {it.rush ? "· Rush" : ""} {it.embroidery?.trim() ? "· Bordado" : ""} {Number(it.accessories) > 0 ? `· Acc:${it.accessories}` : ""}
-                  </div>
+                  <div className="text-xs opacity-70">{it.size} · x{it.qty} {it.rush ? "· Rush" : ""} {it.embroidery?.trim() ? "· Bordado" : ""} {Number(it.accessories) > 0 ? `· Acc:${it.accessories}` : ""}</div>
                 </div>
                 <div className="text-sm font-bold">${computeItemPrice(it)}</div>
               </li>
@@ -573,12 +398,11 @@ function OrderSummary({ items, computeItemPrice, subtotal }) {
           </ul>
         )}
 
-        <div className="divider my-2" />
-        <div className="flex justify-between text-lg font-bold">
+        <div className="mt-4 border-t-2 pt-3 flex justify-between text-lg font-bold" style={{ borderColor: "#1B1A1F" }}>
           <span>Total</span>
           <span>${subtotal}</span>
         </div>
       </div>
-    </div>
+    </Panel>
   );
 }
